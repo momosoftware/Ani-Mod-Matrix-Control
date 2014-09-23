@@ -70,7 +70,7 @@ class Example(Frame):
                     parity = serial.PARITY_NONE,
                     stopbits = serial.STOPBITS_ONE,
                     bytesize = serial.EIGHTBITS,
-                    timeout = .2
+                    timeout = .4
                 )
                 #if it is open, then let's send our command
                 if com.isOpen():
