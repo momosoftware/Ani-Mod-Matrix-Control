@@ -115,6 +115,8 @@ class Example(Frame):
             if com.isOpen():
                 com.write(str(bmnNum) + 'All.')
                 com.close()
+                #get our status refilled
+                self.getOutputStatus()
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
             logger.debug('Port ' + int(comNum)-1 + ' is unavailable: ' + ex)
@@ -171,6 +173,8 @@ class Example(Frame):
                 com.write('7B14.')
                 com.write('8B16.')
                 com.close()
+                #get our status refilled
+                self.getOutputStatus()
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
             logger.debug('Port ' + int(comNum)-1 + ' is unavailable: ' + ex)
