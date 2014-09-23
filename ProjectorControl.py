@@ -8,7 +8,7 @@ from win32api import GetSystemMetrics
 
 #9600,8,n,1
 
-global comNum, bmnNum, com, v, COMPortNumber, BowlingMusicNetworkInputNumber, screenWidth, screenHeight
+global comNum, bmnNum, numOut, com, v, COMPortNumber, BowlingMusicNetworkInputNumber, screenWidth, screenHeight
 
 
 # Set up our logging files
@@ -38,7 +38,7 @@ configParser.read(configFilePath)
 # fill our comNum and bmnNum globals
 comNum = configParser.get('general', 'COMPortNumber')
 bmnNum = configParser.get('general', 'BowlingMusicNetworkInputNumber')
-
+numOut = configParser.get('general', 'numberOfOutputs')
 
 # initialize our gui
 root = Tk()
@@ -179,11 +179,46 @@ class Example(Frame):
             #if it is open, then let's send our command
             if com.isOpen():
                 com.write(str(input) + 'B' + str(output) + '.')
+                com.write('Status' + str(int(output+1)) + '.') # int(string("fuck it")) w
+                response = com.read(6)
+                currentOutput = response[-3:]
+                logger.debug(str(currentOutput))
+                w = Label(self, text=currentOutput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
                 com.close()
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
             logger.debug('Port ' + int(comNum)-1 + ' is unavailable: ' + ex)
     
+    def getOutputStatus(self):
+        # get number of outputs from file and get current input
+        # status of each output, print to label
+        # Need better logging
+        
+        logger.debug('====Init Status====')
+        for output in range(int(numOut)):
+            #lets see if we can open the port
+            try:
+                com = serial.Serial(
+                    port = int(comNum)-1,
+                    baudrate = 9600,
+                    parity = serial.PARITY_NONE,
+                    stopbits = serial.STOPBITS_ONE,
+                    bytesize = serial.EIGHTBITS,
+                    timeout = .5
+                )
+                #if it is open, then let's send our command
+                if com.isOpen():
+                    
+                    com.write('Status' + str(int(output+1)) + '.') # int(string("fuck it")) w
+                    response = com.read(6)
+                    currentOutput = response[-3:]
+                    logger.debug(str(currentOutput))
+                    w = Label(self, text=currentOutput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
+                    # print response
+                    com.close()
+            #if we were unable to open it then let's log the exception
+            except serial.SerialException as ex:
+                logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
     
     def initUI(self):
         # set window title
@@ -253,39 +288,9 @@ class Example(Frame):
             b = Radiobutton(self, text=text,
                             variable=v, value=input)
             b.grid(column=0, padx = 10, sticky=W)
-        
-        
-        # get number of outputs from file and get current input
-        # status of each output, print to label
-        # Need better logging
-        numOut = configParser.get('general', 'numberOfOutputs')
-        
-        logger.debug('====Init Status====')
-        for output in range(int(numOut)):
-            #lets see if we can open the port
-            try:
-                com = serial.Serial(
-                    port = int(comNum)-1,
-                    baudrate = 9600,
-                    parity = serial.PARITY_NONE,
-                    stopbits = serial.STOPBITS_ONE,
-                    bytesize = serial.EIGHTBITS,
-                    timeout = .5
-                )
-                #if it is open, then let's send our command
-                if com.isOpen():
-                    
-                    com.write('Status' + str(int(output+1)) + '.') # int(string("fuck it")) w
-                    response = com.read(6)
-                    currentOutput = response[-3:]
-                    logger.debug(str(currentOutput))
-                    w = Label(self, text=currentOutput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
-                    # print response
-                    com.close()
-            #if we were unable to open it then let's log the exception
-            except serial.SerialException as ex:
-                print ""
-                #logger.debug('Port ' + int(comNum)-1 + ' is unavailable: ' + ex)
+            
+        #get our status filled
+        self.getOutputStatus()
         
         # get number of outputs from var and create buttons for each
         # output, each corresponding to a specific projector. When clicked
