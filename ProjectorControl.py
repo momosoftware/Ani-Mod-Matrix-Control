@@ -55,6 +55,37 @@ class Example(Frame):
         self.parent = parent        
         self.initUI()
     
+    def getOutputStatus(self):
+        # get number of outputs from file and get current input
+        # status of each output, print to label
+        # Need better logging
+        
+        logger.debug('====Init Status====')
+        for output in range(int(numOut)):
+            #lets see if we can open the port
+            try:
+                com = serial.Serial(
+                    port = int(comNum)-1,
+                    baudrate = 9600,
+                    parity = serial.PARITY_NONE,
+                    stopbits = serial.STOPBITS_ONE,
+                    bytesize = serial.EIGHTBITS,
+                    timeout = .2
+                )
+                #if it is open, then let's send our command
+                if com.isOpen():
+                    
+                    com.write('Status' + str(int(output+1)) + '.') # int(string("fuck it")) w
+                    response = com.read(6)
+                    currentOutput = response[-3:]
+                    logger.debug(str(currentOutput))
+                    w = Label(self, text=currentOutput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
+                    # print response
+                    com.close()
+            #if we were unable to open it then let's log the exception
+            except serial.SerialException as ex:
+                logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
+    
     # ########################
     # Bowling Music to all
     # ########################
@@ -188,37 +219,6 @@ class Example(Frame):
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
             logger.debug('Port ' + int(comNum)-1 + ' is unavailable: ' + ex)
-    
-    def getOutputStatus(self):
-        # get number of outputs from file and get current input
-        # status of each output, print to label
-        # Need better logging
-        
-        logger.debug('====Init Status====')
-        for output in range(int(numOut)):
-            #lets see if we can open the port
-            try:
-                com = serial.Serial(
-                    port = int(comNum)-1,
-                    baudrate = 9600,
-                    parity = serial.PARITY_NONE,
-                    stopbits = serial.STOPBITS_ONE,
-                    bytesize = serial.EIGHTBITS,
-                    timeout = .2
-                )
-                #if it is open, then let's send our command
-                if com.isOpen():
-                    
-                    com.write('Status' + str(int(output+1)) + '.') # int(string("fuck it")) w
-                    response = com.read(6)
-                    currentOutput = response[-3:]
-                    logger.debug(str(currentOutput))
-                    w = Label(self, text=currentOutput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
-                    # print response
-                    com.close()
-            #if we were unable to open it then let's log the exception
-            except serial.SerialException as ex:
-                logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
     
     def initUI(self):
         # set window title
