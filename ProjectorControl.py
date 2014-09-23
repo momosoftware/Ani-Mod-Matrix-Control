@@ -4,6 +4,7 @@ import threading
 import ConfigParser
 import logging
 import sys
+import time
 from win32api import GetSystemMetrics
 
 #9600,8,n,1
@@ -74,7 +75,7 @@ class Example(Frame):
                 )
                 #if it is open, then let's send our command
                 if com.isOpen():
-                    
+                    trashResponse = com.read(20)
                     com.write('Status' + str(int(output+1)) + '.') # int(string("fuck it")) w
                     response = com.read(6)
                     currentOutput = response[-3:]
@@ -84,7 +85,7 @@ class Example(Frame):
                     com.close()
             #if we were unable to open it then let's log the exception
             except serial.SerialException as ex:
-                logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
+                logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex) # int(string("fuck it")) w
     
     # ########################
     # Bowling Music to all
@@ -174,7 +175,7 @@ class Example(Frame):
                 com.write('8B16.')
                 com.close()
                 #get our status refilled
-                self.getOutputStatus()
+                getOutputStatus()
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
             logger.debug('Port ' + int(comNum)-1 + ' is unavailable: ' + ex)
