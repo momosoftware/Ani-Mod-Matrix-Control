@@ -108,15 +108,15 @@ class Example(Frame):
     def standardInOut (self):
         logger.debug('====================')
         logger.debug('Set standard AV config')
-        logger.debug(str(bmnNum) + ' B1,3,5,7,9,11,13,15.')
-        logger.debug('1 B2.')
-        logger.debug('2 B4.')
-        logger.debug('3 B6.')
-        logger.debug('4 B8.')
-        logger.debug('5 B10.')
-        logger.debug('6 B12.')
-        logger.debug('7 B14.')
-        logger.debug('8 B16.')
+        logger.debug(str(bmnNum) + 'B1,3,5,7,9,11,13,15.')
+        logger.debug('1B2.')
+        logger.debug('2B4.')
+        logger.debug('3B6.')
+        logger.debug('4B8.')
+        logger.debug('5B10.')
+        logger.debug('6B12.')
+        logger.debug('7B14.')
+        logger.debug('8B16.')
         logger.debug('====================')
         logger.debug(' ')
         #lets see if we can open the port
@@ -131,14 +131,14 @@ class Example(Frame):
             #if it is open, then let's send our command
             if com.isOpen():
                 com.write(str(bmnNum) + 'B1,3,5,7,9,11,13,15.') # BM to every other projector
-                com.write('1 B2.') # DTV1 to Pair2
-                com.write('2 B4.') # DTV2 to Pair4
-                com.write('3 B6.') # and so on
-                com.write('4 B8.') # and so forth
-                com.write('5 B10.')
-                com.write('6 B12.')
-                com.write('7 B14.')
-                com.write('8 B16.')
+                com.write('1B2.') # DTV1 to Pair2
+                com.write('2B4.') # DTV2 to Pair4
+                com.write('3B6.') # and so on
+                com.write('4B8.') # and so forth
+                com.write('5B10.')
+                com.write('6B12.')
+                com.write('7B14.')
+                com.write('8B16.')
                 com.close()
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
@@ -164,7 +164,7 @@ class Example(Frame):
     def setCustomInOut(dummy, input, output):
         logger.debug('====================')
         logger.debug('Set a custom config')
-        logger.debug(str(input) + ' B' + str(output) + '.')
+        logger.debug(str(input) + 'B' + str(output) + '.')
         logger.debug('====================')
         logger.debug(' ')
         #lets see if we can open the port
@@ -178,7 +178,7 @@ class Example(Frame):
             )
             #if it is open, then let's send our command
             if com.isOpen():
-                com.write(str(input) + ' B' + str(output) + '.')
+                com.write(str(input) + 'B' + str(output) + '.')
                 com.close()
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
