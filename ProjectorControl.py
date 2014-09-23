@@ -275,15 +275,17 @@ class Example(Frame):
                 #if it is open, then let's send our command
                 if com.isOpen():
                     
-                    com.write('Status' + str(output) + '.')
-                    response = com.read(5)
-                    currentOutput = response[-2:]
-                    w = Label(self, text=currentOutput, relief=SUNKEN, width=3).grid(row=output, padx = 5,  column=1)
+                    com.write('Status' + str(int(output+1)) + '.') # int(string("fuck it")) w
+                    response = com.read(6)
+                    currentOutput = response[-3:]
+                    logger.debug(str(currentOutput))
+                    w = Label(self, text=currentOutput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
                     # print response
                     com.close()
             #if we were unable to open it then let's log the exception
             except serial.SerialException as ex:
-                logger.debug('Port ' + int(comNum)-1 + ' is unavailable: ' + ex)
+                print ""
+                #logger.debug('Port ' + int(comNum)-1 + ' is unavailable: ' + ex)
         
         # get number of outputs from var and create buttons for each
         # output, each corresponding to a specific projector. When clicked
