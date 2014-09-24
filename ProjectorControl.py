@@ -1,3 +1,19 @@
+#!/usr/bin/env python
+#title          :ProjectorControl.py
+#description    :Management interface for the Ani-Mod video matrix
+#author         :Jesse "acostoss" Hamilton
+#date           :2014-09-24
+#version        :0.7.5
+#usage          :python setup.py py2exe
+#notes          :Only tested in Windows 8.1 Pro
+#todo           :Redirect to log files without stdout and stderr
+#todo           :Update status of single projectors when using setCustomInOut()
+#todo           :rewrite standardInOut() into for loop, using using numIn and numOut
+#todo           :add program status bar to bottom of window
+#pythonVersion  :2.7.8
+#====================================================================================
+
+
 from Tkinter import *
 import serial
 import threading
@@ -6,8 +22,6 @@ import logging
 import sys
 import time
 from win32api import GetSystemMetrics
-
-#9600,8,n,1
 
 global comNum, bmnNum, numOut, com, v, COMPortNumber, BowlingMusicNetworkInputNumber, screenWidth, screenHeight
 
@@ -46,7 +60,7 @@ root = Tk()
 
 root.iconbitmap('avicon.ico')
 
-# init the variable to be used by our radio buttons    
+# init the variable to be used by our radio buttons to determine which input was selected 
 v = StringVar()
 v.set("1") # default it to 1, the first input
 
@@ -56,11 +70,15 @@ class Example(Frame):
         self.parent = parent        
         self.initUI()
     
+    
+    # ########################
+    # Get Output Status
+    # ########################
+    # Grabs current input number for each output
+    # and prints to a label in the same row 
+    # as the output button.
+    # ########################
     def getOutputStatus(self):
-        # get number of outputs from file and get current input
-        # status of each output, print to label
-        # Need better logging
-        
         logger.debug('====Init Status====')
         for output in range(int(numOut)):
             #lets see if we can open the port
@@ -94,7 +112,6 @@ class Example(Frame):
     # standard setup for glow birthday parties
     # and glow bowl on nights without sports games
     # ########################
-    
     def bmnToAll(self):
         logger.debug('====================')
         logger.debug('Set Bowling Music to all')
