@@ -249,7 +249,8 @@ class Example(Frame):
             if com.isOpen():
                 com.write(str(input) + 'B' + str(output) + '.')
                 logger.debug('Output ' + str(output) + '\'s new input:' + str(input))
-                globals()['statusLabel' + str(output + 1)].config(text=str(input))
+                globals()['statusLabel' + str(output + 1)].grid_forget
+                globals()['statusLabel' + str(output + 1)] = Label(self, text=currentInput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
                 # w = Label(text=currentOutput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
                 com.close()
         #if we were unable to open it then let's log the exception
