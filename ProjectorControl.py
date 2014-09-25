@@ -72,6 +72,22 @@ class Example(Frame):
     
     
     # ########################
+    # Get Grid Item
+    # ########################
+    # Given a column and row, grabs
+    # a widget from the grid for
+    # us to do whatever with.
+    # ########################
+    def getGridItem(self, parent, row, col):
+        for child in parent.children.values():
+            info = child.grid_info()
+            #note that rows and column numbers are stored as string                                                                         
+            if info['row'] == str(row) and info['column'] == str(col):
+                return child
+        return None
+    
+    
+    # ########################
     # Get Output Status
     # ########################
     # Grabs current input number for each output
@@ -96,9 +112,9 @@ class Example(Frame):
                     trashResponse = com.read(20)
                     com.write('Status' + str(int(output+1)) + '.') # int(string("fuck it")) w
                     response = com.read(6)
-                    currentOutput = response[-3:]
-                    logger.debug(str(currentOutput))
-                    w = Label(self, text=currentOutput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
+                    currentInput = response[-3:]
+                    logger.debug('Output ' + str(output) + '\'s current input:' + str(currentInput))
+                    globals()['statusLabel' + str(output + 1)] = Label(self, text=currentInput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
                     # print response
                     com.close()
             #if we were unable to open it then let's log the exception
@@ -232,15 +248,13 @@ class Example(Frame):
             #if it is open, then let's send our command
             if com.isOpen():
                 com.write(str(input) + 'B' + str(output) + '.')
-                com.write('Status' + str(int(output+1)) + '.') # int(string("fuck it")) w
-                response = com.read(6)
-                currentOutput = response[-3:]
-                logger.debug(str(currentOutput))
-                w = Label(self, text=currentOutput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
+                logger.debug('Output ' + str(output) + '\'s new input:' + str(input))
+                globals()['statusLabel' + str(output + 1)].config(text=str(input))
+                # w = Label(text=currentOutput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
                 com.close()
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
-            logger.debug('Port ' + int(comNum)-1 + ' is unavailable: ' + ex)
+            logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
     
     def initUI(self):
         # set window title
@@ -285,14 +299,14 @@ class Example(Frame):
         
         #logger.debug('Screen Width: ' + str(screenWidth) + '\nScreen Height: ' + str(screenHeight))
         #logger.debug('Window Width: ' + str(windowWidth) + '\nWindown Height: ' + str(windowHeight))
-        # logger.debug(str(windowWidth) + "x" + str(windowHeight) + "+" + str(windowX) + "+" + str(windowY))
+        #logger.debug(str(windowWidth) + "x" + str(windowHeight) + "+" + str(windowX) + "+" + str(windowY))
         
         # set window size
         windowSizePos = str(windowWidth) + "x" + str(windowHeight) + "+" + str(windowX) + "+" + str(windowY)
         root.geometry(windowSizePos)
         
         #init our inputs dict
-        inputs= [] 
+        inputs = [] 
         
         # then fill it, naming it DTV# where # is the input number,
         # unless it is # matches the bowling music input number (bmnIn)
