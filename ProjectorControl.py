@@ -3,7 +3,7 @@
 #description    :Management interface for the Ani-Mod video matrix
 #author         :Jesse "acostoss" Hamilton
 #date           :2014-09-24
-#version        :0.7.5
+#version        :0.9.1
 #usage          :python setup.py py2exe
 #notes          :Only tested in Windows 8.1 Pro
 #todo           :Redirect to log files without stdout and stderr
@@ -45,11 +45,11 @@ logger.addHandler(ch)
 logger.debug('====ProgramStart====')
 
 # load our config and prepare to read the file
-configParser = ConfigParser.RawConfigParser()   
+configParser = ConfigParser.RawConfigParser()
 configFilePath = r'config.conf'
 configParser.read(configFilePath)
 
-# pull config values from the file to 
+# pull config values from the file to
 # fill our comNum and bmnNum globals
 comNum = configParser.get('general', 'COMPortNumber')
 bmnNum = configParser.get('general', 'BowlingMusicNetworkInputNumber')
@@ -60,17 +60,16 @@ root = Tk()
 
 root.iconbitmap('avicon.ico')
 
-# init the variable to be used by our radio buttons to determine which input was selected 
+# init the variable to be used by our radio buttons to determine which input was selected
 v = StringVar()
 v.set("1") # default it to 1, the first input
 
-class Example(Frame):
+class Master(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent)
-        self.parent = parent        
+        self.parent = parent
         self.initUI()
-    
-    
+
     # ########################
     # Get Grid Item
     # ########################
@@ -81,46 +80,79 @@ class Example(Frame):
     def getGridItem(self, parent, row, col):
         for child in parent.children.values():
             info = child.grid_info()
-            #note that rows and column numbers are stored as string                                                                         
+            #note that rows and column numbers are stored as string
             if info['row'] == str(row) and info['column'] == str(col):
                 return child
         return None
-    
-    
+
+
     # ########################
     # Get Output Status
     # ########################
     # Grabs current input number for each output
-    # and prints to a label in the same row 
+    # and prints to a label in the same row
     # as the output button.
     # ########################
     def getOutputStatus(self):
-        logger.debug('====Init Status====')
-        for output in range(int(numOut)):
-            #lets see if we can open the port
-            try:
-                com = serial.Serial(
-                    port = int(comNum)-1,
-                    baudrate = 9600,
-                    parity = serial.PARITY_NONE,
-                    stopbits = serial.STOPBITS_ONE,
-                    bytesize = serial.EIGHTBITS,
-                    timeout = .4
-                )
-                #if it is open, then let's send our command
-                if com.isOpen():
-                    trashResponse = com.read(20)
-                    com.write('Status' + str(int(output+1)) + '.') # int(string("fuck it")) w
-                    response = com.read(6)
-                    currentInput = response[-3:]
-                    logger.debug('Output ' + str(output) + '\'s current input:' + str(currentInput))
-                    globals()['statusLabel' + str(output + 1)] = Label(self, text=currentInput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
-                    # print response
-                    com.close()
-            #if we were unable to open it then let's log the exception
-            except serial.SerialException as ex:
-                logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex) # int(string("fuck it")) w
-    
+		logger.debug('====Init Status====')
+
+		try:
+			notFirstRun
+		except NameError:
+			logger.debug('=====First Run=====')
+		else:
+			logger.debug('===Not First Run===')
+			statusModal = Toplevel(self)
+			statusModal.title("Loading Status")
+			screenWidth = int(GetSystemMetrics (0))
+			screenHeight = int(GetSystemMetrics (1))
+			winX = screenWidth/2 - 150/2
+			winY = screenHeight/2 - 50/2
+			modalSizePos = "250x10+" + str(winX) + "+" + str(winY)
+			statusModal.geometry(str(modalSizePos))
+			statusModal.lift()
+			loadingLabel = Label(statusModal, text="loading").grid(row=0, column=0)
+			root.withdraw()
+			statusModal.grab_set()
+
+		for output in range(int(numOut)):
+			#lets see if we can open the port
+			try:
+				com = serial.Serial(
+					port = int(comNum)-1,
+					baudrate = 9600,
+					parity = serial.PARITY_NONE,
+					stopbits = serial.STOPBITS_ONE,
+					bytesize = serial.EIGHTBITS,
+					timeout = .4
+				)
+				#if it is open, then let's send our command
+				if com.isOpen():
+					time.sleep(0.5)
+					trashResponse = com.read(100)
+					logger.debug(trashResponse)
+					com.write('Status' + str(int(output+1)) + '.') # int(string("fuck it")) w
+					response = com.read(6)
+					currentInput = response[-3:]
+					logger.debug('Output ' + str(output) + '\'s current input:' + str(currentInput))
+					w = Label(self, text=currentInput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
+					# print response
+					com.close()
+			#if we were unable to open it then let's log the exception
+			except serial.SerialException as ex:
+				logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex) # int(string("fuck it")) w
+		try:
+			notFirstRun
+		except NameError:
+			logger.debug('==Still First Run==')
+		else:
+			logger.debug('==Kill the modal!==')
+			root.deiconify()
+			statusModal.grab_release()
+			statusModal.destroy()
+		global notFirstRun
+		notFirstRun = True
+
     # ########################
     # Bowling Music to all
     # ########################
@@ -134,7 +166,7 @@ class Example(Frame):
         logger.debug(str(bmnNum) + 'All.')
         logger.debug('====================')
         logger.debug(' ')
-        
+
         #lets see if we can open the port
         #9600,8,n,1
         try:
@@ -153,9 +185,9 @@ class Example(Frame):
                 self.getOutputStatus()
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
-            logger.debug('Port ' + int(comNum)-1 + ' is unavailable: ' + ex)
-        
-    
+            logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
+
+
     # ########################
     # Standard setup
     # ########################
@@ -197,40 +229,42 @@ class Example(Frame):
             )
             #if it is open, then let's send our command
             if com.isOpen():
-                com.write(str(bmnNum) + 'B1,3,5,7,9,11,13,15.') # BM to every other projector
-                com.write('1B2.') # DTV1 to Pair2
-                com.write('2B4.') # DTV2 to Pair4
-                com.write('3B6.') # and so on
-                com.write('4B8.') # and so forth
-                com.write('5B10.')
-                com.write('6B12.')
-                com.write('7B14.')
-                com.write('8B16.')
-                com.close()
-                #get our status refilled
-                getOutputStatus()
+				com.write(str(bmnNum) + 'B1,3,5,7,9,11,13,15.') # BM to every other projector
+				com.write('1B2.') # DTV1 to Pair2
+				com.write('2B4.') # DTV2 to Pair4
+				com.write('3B6.') # and so on
+				com.write('4B8.') # and so forth
+				com.write('5B10.')
+				com.write('6B12.')
+				com.write('7B14.')
+				com.write('8B16.')
+				trashResponse = com.read(50)
+				com.close()
+				time.sleep(0.5)
+				#get our status refilled
+				self.getOutputStatus()
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
             logger.debug('Port ' + int(comNum)-1 + ' is unavailable: ' + ex)
-    
-    
+
+
     # ########################
     # Standard In/Out function
     # ########################
-    # takes three arguments, ignores the first 
-    # as i don't know what it is or why it is 
-    # passed, probably something related to 
+    # takes three arguments, ignores the first
+    # as i don't know what it is or why it is
+    # passed, probably something related to
     # the lambda function, maybe its identifier?
     #
-    # The next two arguments are the input and 
-    # output numbers we'd like to set. These are 
+    # The next two arguments are the input and
+    # output numbers we'd like to set. These are
     # provided by radio button and button, respectfully.
-    # Only sets one output to one input at a time, 
-    # most useful for changing a single pair to a 
-    # certain DTV box or back to music videos, 
+    # Only sets one output to one input at a time,
+    # most useful for changing a single pair to a
+    # certain DTV box or back to music videos,
     # if the customer requests it specifically.
     # ########################
-    def setCustomInOut(dummy, input, output):
+    def setCustomInOut(self, input, output):
         logger.debug('====================')
         logger.debug('Set a custom config')
         logger.debug(str(input) + 'B' + str(output) + '.')
@@ -247,40 +281,43 @@ class Example(Frame):
             )
             #if it is open, then let's send our command
             if com.isOpen():
-                com.write(str(input) + 'B' + str(output) + '.')
-                logger.debug('Output ' + str(output) + '\'s new input:' + str(input))
-                globals()['statusLabel' + str(output + 1)].grid_forget
-                globals()['statusLabel' + str(output + 1)] = Label(self, text=currentInput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
-                # w = Label(text=currentOutput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
-                com.close()
+				com.write(str(input) + 'B' + str(output) + '.')
+				#logger.debug('Output ' + str(output) + '\'s new input:' + str(input))
+				#updatedStatus = Master.getGridItem(Master, output, 1)
+				#updatedStatus.grid_forget
+				#w = Label(self, text=currentInput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
+				# w = Label(text=currentOutput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
+				com.close()
+				self.getOutputStatus()
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
             logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
-    
+
     def initUI(self):
         # set window title
         self.parent.title("Projector Control")
-        
+
         # init menubar
         menubar = Menu(self.parent)
         self.parent.config(menu=menubar)
-        
+
         # fill menubar with items
         fileMenu = Menu(menubar)
         fileMenu.add_command(label="Standard setup", command=self.standardInOut)
         fileMenu.add_command(label="Bowling Music to all", command=self.bmnToAll)
+        fileMenu.add_command(label="Get Status", command=self.getOutputStatus)
         menubar.add_cascade(label="File", menu=fileMenu)
 
         self.pack(fill=BOTH, expand=1)
         self.var = IntVar()
-        
+
         # pull total number of inputs as well
-        # as the Bowling Music input number 
+        # as the Bowling Music input number
         # from config file and assign var
         logger.debug('==Read config file==')
         numIn = configParser.get('general', 'numberOfInputs')
         bmnIn = configParser.get('general', 'bowlingMusicNetworkInputNumber')
-        
+
         # ######################################################
         # ######################################################
         # ######################################################
@@ -291,24 +328,24 @@ class Example(Frame):
         # ######################################################
         screenWidth = int(GetSystemMetrics (0))
         screenHeight = int(GetSystemMetrics (1))
-        
+
         windowWidth = int(configParser.get('general', 'windowWidth'))
         windowHeight = int(configParser.get('general', 'windowHeight'))
-        
+
         windowX = screenWidth/2 - windowWidth/2
         windowY = screenHeight/2 - windowHeight/2
-        
+
         #logger.debug('Screen Width: ' + str(screenWidth) + '\nScreen Height: ' + str(screenHeight))
         #logger.debug('Window Width: ' + str(windowWidth) + '\nWindown Height: ' + str(windowHeight))
         #logger.debug(str(windowWidth) + "x" + str(windowHeight) + "+" + str(windowX) + "+" + str(windowY))
-        
+
         # set window size
         windowSizePos = str(windowWidth) + "x" + str(windowHeight) + "+" + str(windowX) + "+" + str(windowY)
         root.geometry(windowSizePos)
-        
+
         #init our inputs dict
-        inputs = [] 
-        
+        inputs = []
+
         # then fill it, naming it DTV# where # is the input number,
         # unless it is # matches the bowling music input number (bmnIn)
         # at which point we name it Bowling Music
@@ -318,39 +355,39 @@ class Example(Frame):
                 inputs.append(['DTV' + str(i + 1), str(i + 1)])
             else:
                 inputs.append(['Bowling Music', str(bmnIn)])
-        
+
         # take our list of inputs and make radio buttons for them,
         # storing the value in the variable "v" that we initialized earlier
         for text, input in inputs:
             b = Radiobutton(self, text=text,
                             variable=v, value=input)
             b.grid(column=0, padx = 10, sticky=W)
-            
-        #get our status filled
-        self.getOutputStatus()
-        
+
+
         # get number of outputs from var and create buttons for each
         # output, each corresponding to a specific projector. When clicked
-        # the buttons should send the value of "v" (which designates 
-        # which input is currently selected) and the output number to our 
+        # the buttons should send the value of "v" (which designates
+        # which input is currently selected) and the output number to our
         # CustomInOut() function.
         logger.debug('====Init outputs====')
         for i in range(int(numOut)):
             vars()['btnOut' + str(i)] = Button(self, width=15, text="Projector " + str(i + 1), command=lambda i=i: self.setCustomInOut(v.get(), i+1) )
             vars()['btnOut' + str(i)].grid(row=i, column=2, sticky=E)
-        
-        
 
-        
+
+
+        #get our status filled
+        self.getOutputStatus()
+
     def onExit(self):
         logger.debug('=====ProgramEnd=====')
         raise SystemExit
 
 def main():
-    
-    app = Example(root)
-    root.mainloop()  
+
+    app = Master(root)
+    root.mainloop()
 
 
 if __name__ == '__main__':
-    main()  
+    main()
