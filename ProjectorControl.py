@@ -70,6 +70,12 @@ class Master(Frame):
         self.parent = parent
         self.initUI()
 
+    def check(number):
+        if number%2==0:
+            print "Even Number"
+        else:
+            print "Odd Number"
+
     # ########################
     # Get Grid Item
     # ########################
@@ -247,6 +253,69 @@ class Master(Frame):
         except serial.SerialException as ex:
             logger.debug('Port ' + int(comNum)-1 + ' is unavailable: ' + ex)
 
+        # for each output, if it is odd then com.write bowling music,
+        # if it is even then com.write the next input in the group
+        # that isn't bowling music
+    def newStandardInOut(self):
+        logger.debug('====================')
+        logger.debug('Set standard AV config')
+        currentOutput = 1
+        for i in range(int(numOut)):
+            if i % 2 == 0:
+                # even
+                if currentOutput != int(bmnIn) - 1:
+                    #notBowlingMusic, continue on
+                else:
+                    #BowlingMusic, increment currentOutput andcontinue on
+                    currentOutput = currentOutput + 1
+                    logger.debug(str(currentOutput) + 'B' + str(i) + '.')
+                
+                try:
+                    com = serial.Serial(
+                        port = int(comNum)-1,
+                        baudrate = 9600,
+                        parity = serial.PARITY_NONE,
+                        stopbits = serial.STOPBITS_ONE,
+                        bytesize = serial.EIGHTBITS
+                    )
+                    #if it is open, then let's send our command
+                    if com.isOpen():
+                        logger.debug(str(currentOutput) + 'B' + str(i) +'.')
+                        com.write(str(currentOutput) + 'B' + str(i) + '.') # BM
+                        trashResponse = com.read(10)
+                        com.close()
+
+                #if we were unable to open it then let's log the exception
+                except serial.SerialException as ex:
+                    logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
+
+                currentOutput = currentOutput + 1
+
+            else:
+                #odd
+                try:
+                    com = serial.Serial(
+                        port = int(comNum)-1,
+                        baudrate = 9600,
+                        parity = serial.PARITY_NONE,
+                        stopbits = serial.STOPBITS_ONE,
+                        bytesize = serial.EIGHTBITS
+                    )
+                    #if it is open, then let's send our command
+                    if com.isOpen():
+                        logger.debug(str(bmnNum) + 'B' + str(i) +'.')
+                        com.write(str(bmnNum) + 'B' + str(i) + '.') # BM
+                        trashResponse = com.read(10)
+                        com.close()
+
+                #if we were unable to open it then let's log the exception
+                except serial.SerialException as ex:
+                    logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
+
+
+        logger.debug('====================')
+        logger.debug(' ')
+        self.getOutputStatus() #refresh our status
 
     # ########################
     # Standard In/Out function
