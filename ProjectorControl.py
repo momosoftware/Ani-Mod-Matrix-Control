@@ -259,17 +259,27 @@ class Master(Frame):
     def newStandardInOut(self):
         logger.debug('====================')
         logger.debug('Set standard AV config')
-        currentOutput = 1
+        #start with 1
+        currentInput = 1
+        #iterate through the loop a number of times equal to our number of outputs
         for i in range(int(numOut)):
+            #if our output is divisible by two with no remainder...
             if i % 2 == 0:
-                # even
-                if currentOutput != int(bmnIn) - 1:
-                    #notBowlingMusic, continue on
+                # then it is even, which means we need to put
+                # our next input onto that lane
+                if currentInput != int(bmnIn) - 1:
+                    # if our current input is not bowling music,
+                    # we're in the clear and don't need to do anything to our
+                    # currentInput before moving on.
+                    pass
                 else:
-                    #BowlingMusic, increment currentOutput andcontinue on
-                    currentOutput = currentOutput + 1
-                    logger.debug(str(currentOutput) + 'B' + str(i) + '.')
-                
+                    # our currentInput is our BowlingMusic input, so we have to
+                    # increment currentInput by one before moving on
+                    currentInput = currentInput + 1
+
+                # Once we've verified this is an even lane and have also
+                # verified we're not currently sitting on the bowling music
+                # input, we can put our currentInput onto the lane
                 try:
                     com = serial.Serial(
                         port = int(comNum)-1,
@@ -280,8 +290,8 @@ class Master(Frame):
                     )
                     #if it is open, then let's send our command
                     if com.isOpen():
-                        logger.debug(str(currentOutput) + 'B' + str(i) +'.')
-                        com.write(str(currentOutput) + 'B' + str(i) + '.') # BM
+                        logger.debug(str(currentInput) + 'B' + str(i) +'.')
+                        com.write(str(currentInput) + 'B' + str(i) + '.') # BM
                         trashResponse = com.read(10)
                         com.close()
 
@@ -289,10 +299,10 @@ class Master(Frame):
                 except serial.SerialException as ex:
                     logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
 
-                currentOutput = currentOutput + 1
+                currentInput = currentInput + 1
 
             else:
-                #odd
+                # otherwise it is odd, so it gets bowling music
                 try:
                     com = serial.Serial(
                         port = int(comNum)-1,
@@ -355,7 +365,7 @@ class Master(Frame):
 				#updatedStatus = Master.getGridItem(Master, output, 1)
 				#updatedStatus.grid_forget
 				#w = Label(self, text=currentInput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
-				# w = Label(text=currentOutput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
+				# w = Label(text=currentInput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
 				com.close()
 				self.getOutputStatus()
         #if we were unable to open it then let's log the exception
