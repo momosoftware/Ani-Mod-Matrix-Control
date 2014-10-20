@@ -3,7 +3,7 @@
 #description    :Management interface for the Ani-Mod video matrix
 #author         :Jesse "acostoss" Hamilton
 #date           :2014-09-24
-#version        :0.9.1
+#version        :0.9.6
 #usage          :python setup.py py2exe
 #notes          :Only tested in Windows 8.1 Pro
 #todo           :Redirect to log files without stdout and stderr
@@ -212,7 +212,7 @@ class Master(Frame):
 
         for i in range(int(numOut)):
             #if our output is divisible by two with no remainder...
-            if i % 2 == 0:
+            if (i + 1) % 2 == 0:
                 # then it is even, which means we need to put
                 # our next input onto that lane
                 if currentInput != int(bmnIn) - 1:
@@ -229,14 +229,14 @@ class Master(Frame):
                 # verified we're not currently sitting on the bowling music
                 # input, we can put our currentInput and current outpit into our
                 # inOuts dict
-                inOuts.append([currentInput, i])
+                inOuts.append([currentInput, i + 1])
 
                 # move on to the next input
                 currentInput = currentInput + 1
 
             else:
                 # otherwise it is odd, so it gets bowling music
-                inOuts.append([bmnNum, i])
+                inOuts.append([bmnNum, i + 1])
 
 
         logger.debug('====================')
@@ -262,7 +262,9 @@ class Master(Frame):
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
             logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
-        #self.getOutputStatus() #refresh our status
+
+        time.sleep(0.5)
+        self.getOutputStatus() #refresh our status
 
     # ########################
     # Custom In/Out function
@@ -298,11 +300,6 @@ class Master(Frame):
             #if it is open, then let's send our command
             if com.isOpen():
 				com.write(str(input) + 'B' + str(output) + '.')
-				#logger.debug('Output ' + str(output) + '\'s new input:' + str(input))
-				#updatedStatus = Master.getGridItem(Master, output, 1)
-				#updatedStatus.grid_forget
-				#w = Label(self, text=currentInput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
-				# w = Label(text=currentInput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
 				com.close()
 				self.getOutputStatus()
         #if we were unable to open it then let's log the exception
@@ -351,10 +348,6 @@ class Master(Frame):
         windowX = screenWidth/2 - windowWidth/2
         windowY = screenHeight/2 - windowHeight/2
 
-        #logger.debug('Screen Width: ' + str(screenWidth) + '\nScreen Height: ' + str(screenHeight))
-        #logger.debug('Window Width: ' + str(windowWidth) + '\nWindown Height: ' + str(windowHeight))
-        #logger.debug(str(windowWidth) + "x" + str(windowHeight) + "+" + str(windowX) + "+" + str(windowY))
-
         # set window size
         windowSizePos = str(windowWidth) + "x" + str(windowHeight) + "+" + str(windowX) + "+" + str(windowY)
         root.geometry(windowSizePos)
@@ -379,7 +372,6 @@ class Master(Frame):
                             variable=v, value=input)
             b.grid(column=0, padx = 10, sticky=W)
 
-
         # get number of outputs from var and create buttons for each
         # output, each corresponding to a specific projector. When clicked
         # the buttons should send the value of "v" (which designates
@@ -389,8 +381,6 @@ class Master(Frame):
         for i in range(int(numOut)):
             vars()['btnOut' + str(i)] = Button(self, width=15, text="Projector " + str(i + 1), command=lambda i=i: self.setCustomInOut(v.get(), i+1) )
             vars()['btnOut' + str(i)].grid(row=i, column=2, sticky=E)
-
-
 
         #get our status filled
         self.getOutputStatus()
