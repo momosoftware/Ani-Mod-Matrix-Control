@@ -8,10 +8,9 @@
 #notes          :Only tested in Windows 8.1 Pro
 #todo           :Redirect to log files without stdout and stderr
 #todo           :Update status of single projectors when using setCustomInOut()
-#todo           :rewrite standardInOut() into for loop, using using numIn and numOut
 #todo           :add program status bar to bottom of window
 #pythonVersion  :2.7.8
-#====================================================================================
+#===============================================================================
 
 
 from Tkinter import *
@@ -21,6 +20,7 @@ import ConfigParser
 import logging
 import sys
 import time
+import tkMessageBox
 from win32api import GetSystemMetrics
 
 global comNum, bmnNum, numOut, com, v, COMPortNumber, BowlingMusicNetworkInputNumber, screenWidth, screenHeight
@@ -193,75 +193,23 @@ class Master(Frame):
         except serial.SerialException as ex:
             logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
 
-
-    # ########################
-    # Standard setup
-    # ########################
-    # Puts bowling music on each odd pair
-    # and DirectTV on each even pair, sequentially.
-    # You end up with:
-    #
-    # Lanes 1 & 2   Bowling Music
-    # Lanes 3 & 4   DTV1
-    # Lanes 5 & 6   Bowling Music
-    # Lanes 7 & 8   DTV2
-    #
-    # and so on
-    #
-    # need to automate into loop, but not today
-    # ########################
-    def standardInOut (self):
-        logger.debug('====================')
-        logger.debug('Set standard AV config')
-        logger.debug(str(bmnNum) + 'B1,3,5,7,9,11,13,15.')
-        logger.debug('1B2.')
-        logger.debug('2B4.')
-        logger.debug('3B6.')
-        logger.debug('4B8.')
-        logger.debug('5B10.')
-        logger.debug('6B12.')
-        logger.debug('7B14.')
-        logger.debug('8B16.')
-        logger.debug('====================')
-        logger.debug(' ')
-        #lets see if we can open the port
-        try:
-            com = serial.Serial(
-                port = int(comNum)-1,
-                baudrate = 9600,
-                parity = serial.PARITY_NONE,
-                stopbits = serial.STOPBITS_ONE,
-                bytesize = serial.EIGHTBITS
-            )
-            #if it is open, then let's send our command
-            if com.isOpen():
-				com.write(str(bmnNum) + 'B1,3,5,7,9,11,13,15.') # BM to every other projector
-				com.write('1B2.') # DTV1 to Pair2
-				com.write('2B4.') # DTV2 to Pair4
-				com.write('3B6.') # and so on
-				com.write('4B8.') # and so forth
-				com.write('5B10.')
-				com.write('6B12.')
-				com.write('7B14.')
-				com.write('8B16.')
-				trashResponse = com.read(50)
-				com.close()
-				time.sleep(0.5)
-				#get our status refilled
-				self.getOutputStatus()
-        #if we were unable to open it then let's log the exception
-        except serial.SerialException as ex:
-            logger.debug('Port ' + int(comNum)-1 + ' is unavailable: ' + ex)
-
-        # for each output, if it is odd then com.write bowling music,
-        # if it is even then com.write the next input in the group
-        # that isn't bowling music
-    def newStandardInOut(self):
+    def standardInOut(self):
         logger.debug('====================')
         logger.debug('Set standard AV config')
         #start with 1
         currentInput = 1
+        numIn = configParser.get('general', 'numberOfInputs')
+        # define our Bowling Music Input
+        bmnIn = configParser.get('general', 'bowlingMusicNetworkInputNumber')
         #iterate through the loop a number of times equal to our number of outputs
+
+        inOuts = []
+
+        # then fill it, naming it DTV# where # is the input number,
+        # unless it is # matches the bowling music input number (bmnIn)
+        # at which point we name it Bowling Music
+        logger.debug('filling inOuts')
+
         for i in range(int(numOut)):
             #if our output is divisible by two with no remainder...
             if i % 2 == 0:
@@ -279,56 +227,45 @@ class Master(Frame):
 
                 # Once we've verified this is an even lane and have also
                 # verified we're not currently sitting on the bowling music
-                # input, we can put our currentInput onto the lane
-                try:
-                    com = serial.Serial(
-                        port = int(comNum)-1,
-                        baudrate = 9600,
-                        parity = serial.PARITY_NONE,
-                        stopbits = serial.STOPBITS_ONE,
-                        bytesize = serial.EIGHTBITS
-                    )
-                    #if it is open, then let's send our command
-                    if com.isOpen():
-                        logger.debug(str(currentInput) + 'B' + str(i) +'.')
-                        com.write(str(currentInput) + 'B' + str(i) + '.') # BM
-                        trashResponse = com.read(10)
-                        com.close()
+                # input, we can put our currentInput and current outpit into our
+                # inOuts dict
+                inOuts.append([currentInput, i])
 
-                #if we were unable to open it then let's log the exception
-                except serial.SerialException as ex:
-                    logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
-
+                # move on to the next input
                 currentInput = currentInput + 1
 
             else:
                 # otherwise it is odd, so it gets bowling music
-                try:
-                    com = serial.Serial(
-                        port = int(comNum)-1,
-                        baudrate = 9600,
-                        parity = serial.PARITY_NONE,
-                        stopbits = serial.STOPBITS_ONE,
-                        bytesize = serial.EIGHTBITS
-                    )
-                    #if it is open, then let's send our command
-                    if com.isOpen():
-                        logger.debug(str(bmnNum) + 'B' + str(i) +'.')
-                        com.write(str(bmnNum) + 'B' + str(i) + '.') # BM
-                        trashResponse = com.read(10)
-                        com.close()
-
-                #if we were unable to open it then let's log the exception
-                except serial.SerialException as ex:
-                    logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
+                inOuts.append([bmnNum, i])
 
 
         logger.debug('====================')
-        logger.debug(' ')
-        self.getOutputStatus() #refresh our status
+        logger.debug(' writing inOuts')
+        logger.debug('====================')
+        logger.debug(inOuts)
+
+        #lets see if we can open the port
+        try:
+            com = serial.Serial(
+                port = int(comNum)-1,
+                baudrate = 9600,
+                parity = serial.PARITY_NONE,
+                stopbits = serial.STOPBITS_ONE,
+                bytesize = serial.EIGHTBITS
+            )
+            #if it is open, then let's send our command
+            if com.isOpen():
+                for input, output in inOuts:
+                    com.write(str(input) + 'B' + str(output) + '.')
+                    logger.debug(str(input) + 'B' + str(output) + '.')
+                com.close()
+        #if we were unable to open it then let's log the exception
+        except serial.SerialException as ex:
+            logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
+        #self.getOutputStatus() #refresh our status
 
     # ########################
-    # Standard In/Out function
+    # Custom In/Out function
     # ########################
     # takes three arguments, ignores the first
     # as i don't know what it is or why it is
