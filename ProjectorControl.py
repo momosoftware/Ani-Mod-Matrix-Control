@@ -7,11 +7,9 @@
 #usage          :python setup.py py2exe
 #notes          :Only tested in Windows 8.1 Pro
 #todo           :Redirect to log files without stdout and stderr
-#todo           :Update status of single projectors when using setCustomInOut()
 #todo           :add program status bar to bottom of window
 #pythonVersion  :2.7.8
 #===============================================================================
-
 
 from Tkinter import *
 import serial
@@ -69,28 +67,6 @@ class Master(Frame):
         Frame.__init__(self, parent)
         self.parent = parent
         self.initUI()
-
-    def check(number):
-        if number%2==0:
-            print "Even Number"
-        else:
-            print "Odd Number"
-
-    # ########################
-    # Get Grid Item
-    # ########################
-    # Given a column and row, grabs
-    # a widget from the grid for
-    # us to do whatever with.
-    # ########################
-    def getGridItem(self, parent, row, col):
-        for child in parent.children.values():
-            info = child.grid_info()
-            #note that rows and column numbers are stored as string
-            if info['row'] == str(row) and info['column'] == str(col):
-                return child
-        return None
-
 
     # ########################
     # Get Output Status
@@ -208,7 +184,6 @@ class Master(Frame):
         # then fill it, naming it DTV# where # is the input number,
         # unless it is # matches the bowling music input number (bmnIn)
         # at which point we name it Bowling Music
-        logger.debug('filling inOuts')
 
         for i in range(int(numOut)):
             #if our output is divisible by two with no remainder...
@@ -318,7 +293,7 @@ class Master(Frame):
         fileMenu = Menu(menubar)
         fileMenu.add_command(label="Standard setup", command=self.standardInOut)
         fileMenu.add_command(label="Bowling Music to all", command=self.bmnToAll)
-        fileMenu.add_command(label="Get Status", command=self.getOutputStatus)
+        fileMenu.add_command(label="Refresh", command=self.getOutputStatus)
         menubar.add_cascade(label="File", menu=fileMenu)
 
         self.pack(fill=BOTH, expand=1)
@@ -384,10 +359,6 @@ class Master(Frame):
 
         #get our status filled
         self.getOutputStatus()
-
-    def onExit(self):
-        logger.debug('=====ProgramEnd=====')
-        raise SystemExit
 
 def main():
 
