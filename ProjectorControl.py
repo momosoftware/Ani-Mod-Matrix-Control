@@ -19,7 +19,11 @@ import logging
 import sys
 import time
 import tkMessageBox
+import httplib
+import urllib
+import random
 from win32api import GetSystemMetrics
+
 
 global comNum, bmnNum, numOut, com, v, COMPortNumber, BowlingMusicNetworkInputNumber, screenWidth, screenHeight
 
@@ -76,64 +80,64 @@ class Master(Frame):
     # as the output button.
     # ########################
     def getOutputStatus(self):
-		logger.debug('====Init Status====')
+        logger.debug('====Init Status====')
 
-		try:
-			notFirstRun
-		except NameError:
-			logger.debug('=====First Run=====')
-		else:
-			logger.debug('===Not First Run===')
-			statusModal = Toplevel(self)
-			statusModal.title("Loading Status")
-			screenWidth = int(GetSystemMetrics (0))
-			screenHeight = int(GetSystemMetrics (1))
-			winX = screenWidth/2 - 150/2
-			winY = screenHeight/2 - 50/2
-			modalSizePos = "250x10+" + str(winX) + "+" + str(winY)
-			statusModal.geometry(str(modalSizePos))
-			statusModal.lift()
-			loadingLabel = Label(statusModal, text="loading").grid(row=0, column=0)
-			root.withdraw()
-			statusModal.grab_set()
+        try:
+            notFirstRun
+        except NameError:
+            logger.debug('=====First Run=====')
+        else:
+            logger.debug('===Not First Run===')
+            statusModal = Toplevel(self)
+            statusModal.title("Loading Status")
+            screenWidth = int(GetSystemMetrics (0))
+            screenHeight = int(GetSystemMetrics (1))
+            winX = screenWidth/2 - 150/2
+            winY = screenHeight/2 - 50/2
+            modalSizePos = "250x10+" + str(winX) + "+" + str(winY)
+            statusModal.geometry(str(modalSizePos))
+            statusModal.lift()
+            loadingLabel = Label(statusModal, text="loading").grid(row=0, column=0)
+            root.withdraw()
+            statusModal.grab_set()
 
-		for output in range(int(numOut)):
-			#lets see if we can open the port
-			try:
-				com = serial.Serial(
-					port = int(comNum)-1,
-					baudrate = 9600,
-					parity = serial.PARITY_NONE,
-					stopbits = serial.STOPBITS_ONE,
-					bytesize = serial.EIGHTBITS,
-					timeout = .4
-				)
-				#if it is open, then let's send our command
-				if com.isOpen():
-					time.sleep(0.5)
-					trashResponse = com.read(100)
-					logger.debug(trashResponse)
-					com.write('Status' + str(int(output+1)) + '.') # int(string("fuck it")) w
-					response = com.read(6)
-					currentInput = response[-3:]
-					logger.debug('Output ' + str(output) + '\'s current input:' + str(currentInput))
-					w = Label(self, text=currentInput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
-					# print response
-					com.close()
-			#if we were unable to open it then let's log the exception
-			except serial.SerialException as ex:
-				logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex) # int(string("fuck it")) w
-		try:
-			notFirstRun
-		except NameError:
-			logger.debug('==Still First Run==')
-		else:
-			logger.debug('==Kill the modal!==')
-			root.deiconify()
-			statusModal.grab_release()
-			statusModal.destroy()
-		global notFirstRun
-		notFirstRun = True
+        for output in range(int(numOut)):
+            #lets see if we can open the port
+            try:
+                com = serial.Serial(
+                    port = int(comNum)-1,
+                    baudrate = 9600,
+                    parity = serial.PARITY_NONE,
+                    stopbits = serial.STOPBITS_ONE,
+                    bytesize = serial.EIGHTBITS,
+                    timeout = .4
+                )
+                #if it is open, then let's send our command
+                if com.isOpen():
+                    trashResponse = com.read(100)
+                    logger.debug("trash: " + trashResponse)
+                    com.write('Status' + str(int(output+1)) + '.') # int(string("fuck it")) w
+                    time.sleep(0.4)
+                    response = com.read(6)
+                    currentInput = response[-3:]
+                    logger.debug('Output ' + str(output) + '\'s current input:' + str(currentInput))
+                    w = Label(self, text=currentInput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
+                    # print response
+                    com.close()
+            #if we were unable to open it then let's log the exception
+            except serial.SerialException as ex:
+                logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex) # int(string("fuck it")) w
+        try:
+            notFirstRun
+        except NameError:
+            logger.debug('==Still First Run==')
+        else:
+            logger.debug('==Kill the modal!==')
+            root.deiconify()
+            statusModal.grab_release()
+            statusModal.destroy()
+        global notFirstRun
+        notFirstRun = True
 
     # ########################
     # Bowling Music to all
@@ -274,12 +278,58 @@ class Master(Frame):
             )
             #if it is open, then let's send our command
             if com.isOpen():
-				com.write(str(input) + 'B' + str(output) + '.')
-				com.close()
-				self.getOutputStatus()
+                com.write(str(input) + 'B' + str(output) + '.')
+                com.close()
+                self.getOutputStatus()
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
             logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
+
+
+    # ########################
+    # Projectors On
+    # ########################
+    # Turns all projectors n the house on. Does so
+    # through use of HTTP POST, lifted straight from the
+    # projector's web portal. Doesn't require any sort
+    # of authentication to hit the POST taget, despite needing
+    # auth to access the page which send the POST if accessing
+    # via web browser.
+    #
+    # Really glad that I didn't have to do any bullshit with cURL
+    # and can get away with use of httplib and urllib'
+    #
+    # Currently a proof of concept
+    # TODO:
+    # - starting with a projStartingIP, take numOfProj variable amount
+    #   iterate through a for loop and turn all projectors on.
+    # - Do something similar to turn them off.
+    # - Another function for turning on/off a single projector
+    # - one for status
+    # - oh and properly comment the function
+    # ########################
+    def projectorsOn(self):
+        logger.debug('====================')
+        logger.debug('Turn on a specific projector')
+        logger.debug('====================')
+
+        projIP = "192.168.41.105"
+
+        projURL = projIP
+        logger.debug("URL: " + projURL)
+        projCMD = "command=24003100    0f0001010003010001"
+
+        params = urllib.urlencode({'@number': 12524, '@type': 'issue', '@action': 'show'})
+        headers = {"Content-Type": "application/x-www-form-urlencoded", "Cache-Control": "no-cache"}
+        logger.debug(headers)
+        projCON = httplib.HTTPConnection(projURL)
+        projCON.request("POST", "/tgi/return.tgi?sid=" + str(random.random()), projCMD, headers)
+        projRESP = projCON.getresponse()
+        logger.debug(projRESP.status)
+        logger.debug(projRESP.reason)
+        data = projRESP.read()
+        logger.debug(data)
+        projCON.close()
 
     def initUI(self):
         # set window title
@@ -293,6 +343,7 @@ class Master(Frame):
         fileMenu = Menu(menubar)
         fileMenu.add_command(label="Standard setup", command=self.standardInOut)
         fileMenu.add_command(label="Bowling Music to all", command=self.bmnToAll)
+        fileMenu.add_command(label="Turn on projectors", command=self.projectorsOn)
         fileMenu.add_command(label="Refresh", command=self.getOutputStatus)
         menubar.add_cascade(label="File", menu=fileMenu)
 
