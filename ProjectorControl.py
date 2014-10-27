@@ -313,23 +313,27 @@ class Master(Frame):
         logger.debug('Turn on a specific projector')
         logger.debug('====================')
 
-        projIP = "192.168.41.105"
+        projSubnet = configParser.get('general', 'projectorSubnet')
+        projHost = configParser.get('general', 'projectorStartingHost')
+        currentProjHost = int(projHost)
+        for i in range(int(numOut)):
+            projIP = "192.168." + str(projSubnet) + "." + str(currentProjHost)
 
-        projURL = projIP
-        logger.debug("URL: " + projURL)
-        projCMD = "command=24003100    0f0001010003010001"
+            logger.debug("URL: " + projIP)
+            projCMD = "command=24003100    0f0001010003010001"
+            params = urllib.urlencode({'@number': 12524, '@type': 'issue', '@action': 'show'})
+            headers = {"Content-Type": "application/x-www-form-urlencoded", "Cache-Control": "no-cache"}
+            logger.debug(headers)
+            projCON = httplib.HTTPConnection(projIP)
+            projCON.request("POST", "/tgi/return.tgi?sid=" + str(random.random()), projCMD, headers)
+            projRESP = projCON.getresponse()
+            logger.debug(projRESP.status)
+            logger.debug(projRESP.reason)
+            data = projRESP.read()
+            logger.debug(data)
+            projCON.close()
 
-        params = urllib.urlencode({'@number': 12524, '@type': 'issue', '@action': 'show'})
-        headers = {"Content-Type": "application/x-www-form-urlencoded", "Cache-Control": "no-cache"}
-        logger.debug(headers)
-        projCON = httplib.HTTPConnection(projURL)
-        projCON.request("POST", "/tgi/return.tgi?sid=" + str(random.random()), projCMD, headers)
-        projRESP = projCON.getresponse()
-        logger.debug(projRESP.status)
-        logger.debug(projRESP.reason)
-        data = projRESP.read()
-        logger.debug(data)
-        projCON.close()
+            currentProjHost = currentProjHost + 1
 
     def initUI(self):
         # set window title
