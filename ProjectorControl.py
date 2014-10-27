@@ -318,7 +318,8 @@ class Master(Frame):
         currentProjHost = int(projHost)
         for i in range(int(numOut)):
             projIP = "192.168." + str(projSubnet) + "." + str(currentProjHost)
-
+            #Projector off  command=24003100    0f0001010003010002
+            #Status         command=24003100    0e00023100000000
             logger.debug("URL: " + projIP)
             projCMD = "command=24003100    0f0001010003010001"
             params = urllib.urlencode({'@number': 12524, '@type': 'issue', '@action': 'show'})
@@ -345,11 +346,26 @@ class Master(Frame):
 
         # fill menubar with items
         fileMenu = Menu(menubar)
-        fileMenu.add_command(label="Standard setup", command=self.standardInOut)
-        fileMenu.add_command(label="Bowling Music to all", command=self.bmnToAll)
-        fileMenu.add_command(label="Turn on projectors", command=self.projectorsOn)
+        sceneMenu = Menu(fileMenu)
+        projMenu = Menu(fileMenu)
+
+        sceneMenu.add_command(label="Standard setup", command=self.standardInOut)
+        sceneMenu.add_command(label="Bowling Music to all", command=self.bmnToAll)
+        fileMenu.add_cascade(label="Scenes", underline = 0, menu=sceneMenu)
+
+        projMenu.add_command(label="Turn on projectors", underline = 0, command=self.projectorsOn)
+        fileMenu.add_cascade(label="Projectors", underline = 0, menu=projMenu)
+
+        fileMenu.add_separator()
+
         fileMenu.add_command(label="Refresh", command=self.getOutputStatus)
-        menubar.add_cascade(label="File", menu=fileMenu)
+
+        fileMenu.add_separator()
+
+        fileMenu.add_command(label="Exit", underline = 0, command=self.onExit)
+        menubar.add_cascade(label="File", underline = 0, menu=fileMenu)
+
+
 
         self.pack(fill=BOTH, expand=1)
         self.var = IntVar()
@@ -414,6 +430,9 @@ class Master(Frame):
 
         #get our status filled
         self.getOutputStatus()
+
+        def onExit(self):
+            self.quit()
 
 def main():
 
