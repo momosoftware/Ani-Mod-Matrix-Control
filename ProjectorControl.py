@@ -28,6 +28,7 @@ from win32api import GetSystemMetrics
 global comNum, bmnNum, numOut, com, v, COMPortNumber, BowlingMusicNetworkInputNumber, screenWidth, screenHeight
 
 
+
 # Set up our logging files
 sys.stderr = open('ProjectorControl.log', 'w')
 sys.stdout = open('ProjectorControl.err', 'w')
@@ -53,6 +54,9 @@ configParser.read(configFilePath)
 
 # pull config values from the file to
 # fill our comNum and bmnNum globals
+
+# maybe i should sub the config values in for the globals since they are meant
+# to be constant
 comNum = configParser.get('general', 'COMPortNumber')
 bmnNum = configParser.get('general', 'BowlingMusicNetworkInputNumber')
 numOut = configParser.get('general', 'numberOfOutputs')
@@ -71,6 +75,10 @@ class Master(Frame):
         Frame.__init__(self, parent)
         self.parent = parent
         self.initUI()
+
+
+
+
 
     # ########################
     # Get Output Status
@@ -431,8 +439,26 @@ class Master(Frame):
         #get our status filled
         self.getOutputStatus()
 
-        def onExit(self):
-            self.quit()
+    def onExit(self):
+        self.quit()
+
+    # ########################
+    # Argument Parser
+    # ########################
+    # Pulls arguments and decides which function to call
+    # ########################
+    if sys.argv:
+        parsed = argv[0]
+        options[parsed]()
+
+        options = {
+            'projOn' : projectorsOn,
+            'custInOut' : customInOut,
+            'stanInOut' : standardInOut,
+            'bmnToAll' : bmnToAll,
+            'status' : getOutputStatus,
+            'gui' : initGui,
+        }
 
 def main():
 
