@@ -3,10 +3,10 @@ import py2exe
 
 setup(
     zipfile = None,
-    windows=[
+    console=[
         {
             'script':'ProjectorControl.py',
             'icon_resources': [(1, "avicon.ico")]
         }
     ],
-)    
+)
