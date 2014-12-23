@@ -3,12 +3,13 @@
 #description    :Management interface for the Ani-Mod video matrix
 #author         :Jesse "acostoss" Hamilton
 #date           :2014-09-24
-#version        :0.9.6
+#version        :1.2.0
 #usage          :python setup.py py2exe
 #notes          :Only tested in Windows 8.1 Pro
 #todo           :Redirect to log files without stdout and stderr
 #todo           :add program status bar to bottom of window
 #todo           :finish refactoring code to allow for cmd-line switches, separating gui and backing code
+#todo           :error checking for command line code
 #pythonVersion  :2.7.8
 #===============================================================================
 
@@ -32,7 +33,7 @@ global com, v, COMPortNumber, BowlingMusicNetworkInputNumber, screenWidth, scree
 
 # Set up our logging files
 sys.stderr = open('ProjectorControl.log', 'a')
-sys.stdout = open('ProjectorControl.err', 'a')
+# sys.stdout = open('ProjectorControl.err', 'a')
 
 # create logger
 logger = logging.getLogger("logging")
@@ -537,8 +538,11 @@ def main():
     # [0] is avcontrol.exe and [1] is gui
     # ########################
     m = Master(root)
-    if sys.argv:
+    if len(sys.argv) > 1:
         parsed = sys.argv[1]
+    else:
+        parsed = None
+
 
     #spiffy case/switch implimentation from http://code.activestate.com/recipes/410692/
     for case in switch(parsed):
@@ -570,8 +574,43 @@ def main():
             app.initUI()
             root.mainloop()
             break
+        if case('help'):
+            helptext = ("AV Control Version 1.2.0 \n"
+                        "Management interface for the Ani-Mod video matrix and certain Casio projectors\n\n"
+                        "Copyright (C) 2014 BMA, Inc.\n"
+                        "License MIT <http://opensource.org/licenses/MIT>\n"
+                        "This is free software: you are free to change and redistribute it.\n"
+                        "There is NO WARRANTY, to the extent permitted by law.\n\n"
+                        "Valid options:\n"
+                        "\tprojOn\n"
+                        "\t\tTurns on all projectors, starting with a host on a certain\n"
+                        "\t\tsubnet, both specified in the config.conf. Continues for a\n"
+                        "\t\tnumber of projectors specified in the config.conf. All \n"
+                        "\t\tprojector hosts must be in sequential order on the same subnet.\n\n"
+                        "\tcustInOut input output (where 'input' and 'output' are integer values)\n"
+                        "\t\tSets the specified input as the specified output's source.\n"
+                        "\t\tThere is not yet any validation so out-of-bounds values are\n"
+                        "\t\tstill accepted and just won't do anything.\n\n"
+                        "\tstanInOut\n"
+                        "\t\tSets all outputs to the standard configuration of\n"
+                        "\t\t[BMN, DTV1, BMN, DTV2, BMN, DTV3, ...], limited by number\n"
+                        "\t\tof outputs in the house.\n\n"
+                        "\tbmnToAll\n"
+                        "\t\tSets the BMN input as the source to all outputs.\n\n"
+                        "\tstatus\n"
+                        "\t\tReads the current input from each output\n\n"
+                        "\tgui\n"
+                        "\t\tBrings up the old barebones graphical user interface\n\n\n"
+                        "Report bugs to: jesse@dassle.us\n"
+                        "Software Github Page: <http://github.com/acostoss/Ani-Mod-Matrix-Control/>")
+            sys.stdout.write(helptext)
+            break
         if case(): # default, could also just omit condition or 'if True'
-            print "something else!"
+            if len(sys.argv) > 1: #unknown argument given, and we know there is at least one
+                args = ", ".join(sys.argv[1:])
+                sys.stdout.write("Invalid argument(s) given: '" + args + "'\nPlease use the 'help' argument for a list of accepted arguments")
+            else: #unknown argument given, is actually just empty
+                sys.stdout.write("No argument given. Please use the 'help' argument for a list of accepted arguments")
             # No need to break here, it'll stop anyway
 
 
