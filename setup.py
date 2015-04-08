@@ -5,8 +5,7 @@ setup(
     zipfile = None,
     console=[
         {
-            'script':'ProjectorControl.py',
-            'icon_resources': [(1, "avicon.ico")]
+            'script':'ProjectorControl.py'
         }
     ],
 )

@@ -13,6 +13,7 @@
 #pythonVersion  :2.7.8
 #===============================================================================
 
+import ttk
 from Tkinter import *
 import serial
 import threading
@@ -59,11 +60,35 @@ root = Tk()
 
 root.iconbitmap('avicon.ico')
 
+# ######################################################
+# ######################################################
+# ######################################################
+# ######################################################
+# ######################################################
+# ######################################################
+# ######################################################
+# NOTEBOOK SHIT
+# ######################################################
+# ######################################################
+# ######################################################
+# ######################################################
+# ######################################################
+note = Notebook(root)
+tab1 = Frame(note)
+tab2 = Frame(note)
+tab3 = Frame(note)
+Button(tab1, text='Exit', command=root.destroy).pack(padx=100, pady=100)
+
+note.add(tab1, text = "Tab One")
+note.add(tab2, text = "Tab Two")
+note.add(tab3, text = "Tab Three")
+note.pack(fill=BOTH, expand=1)
+
 # init the variable to be used by our radio buttons to determine which input was selected
 v = StringVar()
 v.set("1") # default it to 1, the first input
 
-# class for spiffy case/switch implimentation from http://code.activestate.com/recipes/410692/
+# class for spiffy case/switch implementation from http://code.activestate.com/recipes/410692/
 class switch(object):
     def __init__(self, value):
         self.value = value
@@ -86,10 +111,6 @@ class Master(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent)
         self.parent = parent
-
-
-
-
 
     # ########################
     # Get Output Status
@@ -389,8 +410,7 @@ class Master(Frame):
 
         fileMenu.add_command(label="Exit", underline = 0, command=self.onExit)
         menubar.add_cascade(label="File", underline = 0, menu=fileMenu)
-
-
+        
 
         self.pack(fill=BOTH, expand=1)
         self.var = IntVar()
@@ -441,7 +461,7 @@ class Master(Frame):
         for text, input in inputs:
             b = Radiobutton(self, text=text,
                             variable=v, value=input)
-            b.grid(column=0, padx = 10, sticky=W)
+            #b.grid(column=0, padx = 10, sticky=W)
 
         # get number of outputs from var and create buttons for each
         # output, each corresponding to a specific projector. When clicked
@@ -451,10 +471,10 @@ class Master(Frame):
         logger.debug('====Init outputs====')
         for i in range(int(configParser.get('general', 'numberOfOutputs'))):
             vars()['btnOut' + str(i)] = Button(self, width=15, text="Projector " + str(i + 1), command=lambda i=i: self.setCustomInOut(v.get(), i+1) )
-            vars()['btnOut' + str(i)].grid(row=i, column=2, sticky=E)
+            #vars()['btnOut' + str(i)].grid(row=i, column=2, sticky=E)
 
         #get our status filled
-        self.getOutputStatus()
+        #self.getOutputStatus()
 
     def onExit(self):
         self.quit()
@@ -472,6 +492,7 @@ class Master(Frame):
     # need to just toss that stuff in conditionals lik I do for most of the other functions but eh
     # ########################
     def cmdGetOutputStatus(self):
+        inputStat = []
         for output in range(int(configParser.get('general', 'numberOfOutputs'))):
             #lets see if we can open the port
             try:
@@ -492,13 +513,16 @@ class Master(Frame):
                     response = com.read(6)
                     currentInput = response[-3:]
                     logger.debug('Output ' + str(output) + '\'s current input:' + str(currentInput))
-                    w = Label(self, text=currentInput, relief=SUNKEN, width=5).grid(row=output, padx = 5,  column=1)
+                    inputStat.append(str(output) + "|" + str(currentInput))
                     # print response
                     com.close()
             #if we were unable to open it then let's log the exception
             except serial.SerialException as ex:
                 logger.debug('Port ' + str(int(configParser.get('general', 'COMPortNumber'))-1) + ' is unavailable: ' + ex) # int(string("fuck it")) w
-
+        status = ",".join(inputStat)
+        f = open('status.txt','w')
+        f.write(status) # python will convert \n to os.linesep
+        f.close()
     # ########################
     # (cmd) Custom In/Out function
     # ########################
@@ -543,6 +567,8 @@ def main():
     else:
         parsed = None
 
+
+    logger.debug(''.join(sys.argv))
 
     #spiffy case/switch implimentation from http://code.activestate.com/recipes/410692/
     for case in switch(parsed):
