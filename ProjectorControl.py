@@ -401,17 +401,27 @@ class Master(Frame):
         fileMenu = Menu(menubar)
         fileMenu.add_command(label="Standard setup", command=self.standardInOut)
         fileMenu.add_command(label="Bowling Music to all", command=self.bmnToAll)
+<<<<<<< HEAD
         fileMenu.add_command(label="Turn on projectors", command=self.projectorsOn)
         fileMenu.add_command(label="Refresh", command=self.getOutputStatus)
         
         fileMenu.add_separator()
         
         fileMenu.add_command(label=configParser.get('general', 'custom1Name'), command=self.getCustom1Cmd)
+=======
+        fileMenu.add_command(label="Turn on projectors", command=self.projectorsOn)
+<<<<<<< HEAD
+        fileMenu.add_command(label="Refresh", command=self.getOutputStatus)
+>>>>>>> parent of c61d6ce... reverting to old commit due to change in direction of project
 
         fileMenu.add_separator()
 
         fileMenu.add_command(label="Exit", underline = 0, command=self.onExit)
         menubar.add_cascade(label="File", underline = 0, menu=fileMenu)
+=======
+        fileMenu.add_command(label="Refresh", command=self.getOutputStatus)
+        menubar.add_cascade(label="File", menu=fileMenu)
+>>>>>>> parent of c9eab08... Menu overhaul to make room for new projector commands
 
         self.pack(fill=BOTH, expand=1)
         self.var = IntVar()
@@ -475,6 +485,7 @@ class Master(Frame):
             #vars()['btnOut' + str(i)].grid(row=i, column=2, sticky=E)
 
         #get our status filled
+<<<<<<< HEAD
         #self.getOutputStatus()
 
     def onExit(self):
@@ -547,6 +558,10 @@ class Master(Frame):
         except serial.SerialException as ex:
             logger.debug('Port ' + str(int(configParser.get('general', 'COMPortNumber'))-1) + ' is unavailable: ' + ex)
             
+=======
+        self.getOutputStatus()
+
+>>>>>>> parent of c9eab08... Menu overhaul to make room for new projector commands
 def main():
     root.withdraw()
     # ########################
