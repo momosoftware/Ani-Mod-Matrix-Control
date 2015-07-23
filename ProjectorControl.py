@@ -402,6 +402,7 @@ class Master(Frame):
         fileMenu.add_command(label="Standard setup", command=self.standardInOut)
         fileMenu.add_command(label="Bowling Music to all", command=self.bmnToAll)
 <<<<<<< HEAD
+<<<<<<< HEAD
         fileMenu.add_command(label="Turn on projectors", command=self.projectorsOn)
         fileMenu.add_command(label="Refresh", command=self.getOutputStatus)
         
@@ -409,6 +410,8 @@ class Master(Frame):
         
         fileMenu.add_command(label=configParser.get('general', 'custom1Name'), command=self.getCustom1Cmd)
 =======
+=======
+>>>>>>> parent of c61d6ce... reverting to old commit due to change in direction of project
         fileMenu.add_command(label="Turn on projectors", command=self.projectorsOn)
 <<<<<<< HEAD
         fileMenu.add_command(label="Refresh", command=self.getOutputStatus)
