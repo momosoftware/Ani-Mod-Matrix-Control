@@ -3,17 +3,14 @@
 #description    :Management interface for the Ani-Mod video matrix
 #author         :Jesse "acostoss" Hamilton
 #date           :2014-09-24
-#version        :1.2.0
+#version        :0.9.6
 #usage          :python setup.py py2exe
 #notes          :Only tested in Windows 8.1 Pro
 #todo           :Redirect to log files without stdout and stderr
 #todo           :add program status bar to bottom of window
-#todo           :finish refactoring code to allow for cmd-line switches, separating gui and backing code
-#todo           :error checking for command line code
 #pythonVersion  :2.7.8
 #===============================================================================
 
-import ttk
 from Tkinter import *
 import serial
 import threading
@@ -28,13 +25,12 @@ import random
 from win32api import GetSystemMetrics
 
 
-global com, v, COMPortNumber, BowlingMusicNetworkInputNumber, screenWidth, screenHeight
-
+global comNum, bmnNum, numOut, com, v, COMPortNumber, BowlingMusicNetworkInputNumber, screenWidth, screenHeight
 
 
 # Set up our logging files
-sys.stderr = open('ProjectorControl.log', 'a')
-# sys.stdout = open('ProjectorControl.err', 'a')
+sys.stderr = open('ProjectorControl.log', 'w')
+sys.stdout = open('ProjectorControl.err', 'w')
 
 # create logger
 logger = logging.getLogger("logging")
@@ -55,6 +51,12 @@ configParser = ConfigParser.RawConfigParser()
 configFilePath = r'config.conf'
 configParser.read(configFilePath)
 
+# pull config values from the file to
+# fill our comNum and bmnNum globals
+comNum = configParser.get('general', 'COMPortNumber')
+bmnNum = configParser.get('general', 'BowlingMusicNetworkInputNumber')
+numOut = configParser.get('general', 'numberOfOutputs')
+
 # initialize our gui
 root = Tk()
 
@@ -64,29 +66,11 @@ root.iconbitmap('avicon.ico')
 v = StringVar()
 v.set("1") # default it to 1, the first input
 
-# class for spiffy case/switch implementation from http://code.activestate.com/recipes/410692/
-class switch(object):
-    def __init__(self, value):
-        self.value = value
-        self.fall = False
-
-    def __iter__(self):
-        yield self.match
-        raise StopIteration
-
-    def match(self, *args):
-        if self.fall or not args:
-            return True
-        elif self.value in args:
-            self.fall = True
-            return True
-        else:
-            return False
-
 class Master(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent)
         self.parent = parent
+        self.initUI()
 
     # ########################
     # Get Output Status
@@ -117,11 +101,11 @@ class Master(Frame):
             root.withdraw()
             statusModal.grab_set()
 
-        for output in range(int(configParser.get('general', 'numberOfOutputs'))):
+        for output in range(int(numOut)):
             #lets see if we can open the port
             try:
                 com = serial.Serial(
-                    port = int(configParser.get('general', 'COMPortNumber'))-1,
+                    port = int(comNum)-1,
                     baudrate = 9600,
                     parity = serial.PARITY_NONE,
                     stopbits = serial.STOPBITS_ONE,
@@ -142,7 +126,7 @@ class Master(Frame):
                     com.close()
             #if we were unable to open it then let's log the exception
             except serial.SerialException as ex:
-                logger.debug('Port ' + str(int(configParser.get('general', 'COMPortNumber'))-1) + ' is unavailable: ' + ex) # int(string("fuck it")) w
+                logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex) # int(string("fuck it")) w
         try:
             notFirstRun
         except NameError:
@@ -161,13 +145,11 @@ class Master(Frame):
     # Puts bowling music across the entire house,
     # standard setup for glow birthday parties
     # and glow bowl on nights without sports games
-    # Erin @ strikers
-    # 954-749-1400
     # ########################
-    def bmnToAll(self,gui):
+    def bmnToAll(self):
         logger.debug('====================')
         logger.debug('Set Bowling Music to all')
-        logger.debug(str(configParser.get('general', 'BowlingMusicNetworkInputNumber')) + 'All.')
+        logger.debug(str(bmnNum) + 'All.')
         logger.debug('====================')
         logger.debug(' ')
 
@@ -175,7 +157,7 @@ class Master(Frame):
         #9600,8,n,1
         try:
             com = serial.Serial(
-                port = int(configParser.get('general', 'COMPortNumber'))-1,
+                port = int(comNum)-1,
                 baudrate = 9600,
                 parity = serial.PARITY_NONE,
                 stopbits = serial.STOPBITS_ONE,
@@ -183,17 +165,15 @@ class Master(Frame):
             )
             #if it is open, then let's send our command
             if com.isOpen():
-                com.write(str(configParser.get('general', 'BowlingMusicNetworkInputNumber')) + 'All.')
+                com.write(str(bmnNum) + 'All.')
                 com.close()
                 #get our status refilled
-                if (gui == True):
-                    self.getOutputStatus()
-
+                self.getOutputStatus()
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
-            logger.debug('Port ' + str(int(configParser.get('general', 'COMPortNumber'))-1) + ' is unavailable: ' + ex)
+            logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
 
-    def standardInOut(self, gui):
+    def standardInOut(self):
         logger.debug('====================')
         logger.debug('Set standard AV config')
         #start with 1
@@ -209,7 +189,7 @@ class Master(Frame):
         # unless it is # matches the bowling music input number (bmnIn)
         # at which point we name it Bowling Music
 
-        for i in range(int(configParser.get('general', 'numberOfOutputs'))):
+        for i in range(int(numOut)):
             #if our output is divisible by two with no remainder...
             if (i + 1) % 2 == 0:
                 # then it is even, which means we need to put
@@ -235,7 +215,7 @@ class Master(Frame):
 
             else:
                 # otherwise it is odd, so it gets bowling music
-                inOuts.append([configParser.get('general', 'BowlingMusicNetworkInputNumber'), i + 1])
+                inOuts.append([bmnNum, i + 1])
 
 
         logger.debug('====================')
@@ -246,7 +226,7 @@ class Master(Frame):
         #lets see if we can open the port
         try:
             com = serial.Serial(
-                port = int(configParser.get('general', 'COMPortNumber'))-1,
+                port = int(comNum)-1,
                 baudrate = 9600,
                 parity = serial.PARITY_NONE,
                 stopbits = serial.STOPBITS_ONE,
@@ -260,43 +240,10 @@ class Master(Frame):
                 com.close()
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
-            logger.debug('Port ' + str(int(configParser.get('general', 'COMPortNumber'))-1) + ' is unavailable: ' + ex)
+            logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
 
         time.sleep(0.5)
-        if (gui == True):
-            self.getOutputStatus() #refresh our status
-            
-    # 
-    # Custom Command Function
-    #
-    #
-    #
-    #
-    #
-    #
-    # 
-    # 
-    
-    def getCustom1Cmd(self):
-        customCmd1 = configParser.get('general', 'custom1cmd')
-        try:
-            com = serial.Serial(
-                port = int(configParser.get('general', 'COMPortNumber'))-1,
-                baudrate = 9600,
-                parity = serial.PARITY_NONE,
-                stopbits = serial.STOPBITS_ONE,
-                bytesize = serial.EIGHTBITS
-            )
-            #if it is open, then let's send our command
-            if com.isOpen():
-                for input, output in inOuts:
-                    com.write(str(customCmd1))
-                    logger.debug("command:" + str(customCmd1))
-            com.close()
-        #if we were unable to open it then let's log the exception
-        except serial.SerialException as ex:
-            logger.debug('Port ' + str(int(configParser.get('general', 'COMPortNumber'))-1) + ' is unavailable: ' + ex)
-   
+        self.getOutputStatus() #refresh our status
 
     # ########################
     # Custom In/Out function
@@ -323,7 +270,7 @@ class Master(Frame):
         #lets see if we can open the port
         try:
             com = serial.Serial(
-                port = int(configParser.get('general', 'COMPortNumber'))-1,
+                port = int(comNum)-1,
                 baudrate = 9600,
                 parity = serial.PARITY_NONE,
                 stopbits = serial.STOPBITS_ONE,
@@ -336,7 +283,7 @@ class Master(Frame):
                 self.getOutputStatus()
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
-            logger.debug('Port ' + str(int(configParser.get('general', 'COMPortNumber'))-1) + ' is unavailable: ' + ex)
+            logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
 
 
     # ########################
@@ -369,9 +316,10 @@ class Master(Frame):
         projSubnet = configParser.get('general', 'projectorSubnet')
         projHost = configParser.get('general', 'projectorStartingHost')
         currentProjHost = int(projHost)
-        for i in range(int(configParser.get('general', 'numberOfOutputs'))):
+        for i in range(int(numOut)):
             projIP = "192.168." + str(projSubnet) + "." + str(currentProjHost)
-
+            #Projector off  command=24003100    0f0001010003010002
+            #Status         command=24003100    0e00023100000000
             logger.debug("URL: " + projIP)
             projCMD = "command=24003100    0f0001010003010001"
             params = urllib.urlencode({'@number': 12524, '@type': 'issue', '@action': 'show'})
@@ -389,7 +337,6 @@ class Master(Frame):
             currentProjHost = currentProjHost + 1
 
     def initUI(self):
-        root.deiconify()
         # set window title
         self.parent.title("Projector Control")
 
@@ -399,27 +346,26 @@ class Master(Frame):
 
         # fill menubar with items
         fileMenu = Menu(menubar)
-        fileMenu.add_command(label="Standard setup", command=self.standardInOut)
-        fileMenu.add_command(label="Bowling Music to all", command=self.bmnToAll)
-<<<<<<< HEAD
-<<<<<<< HEAD
-        fileMenu.add_command(label="Turn on projectors", command=self.projectorsOn)
-        fileMenu.add_command(label="Refresh", command=self.getOutputStatus)
-        
+        sceneMenu = Menu(fileMenu)
+        projMenu = Menu(fileMenu)
+
+        sceneMenu.add_command(label="Standard setup", command=self.standardInOut)
+        sceneMenu.add_command(label="Bowling Music to all", command=self.bmnToAll)
+        fileMenu.add_cascade(label="Scenes", underline = 0, menu=sceneMenu)
+
+        projMenu.add_command(label="Turn on projectors", underline = 0, command=self.projectorsOn)
+        fileMenu.add_cascade(label="Projectors", underline = 0, menu=projMenu)
+
         fileMenu.add_separator()
-        
-        fileMenu.add_command(label=configParser.get('general', 'custom1Name'), command=self.getCustom1Cmd)
-=======
-=======
->>>>>>> parent of c61d6ce... reverting to old commit due to change in direction of project
-        fileMenu.add_command(label="Turn on projectors", command=self.projectorsOn)
+
         fileMenu.add_command(label="Refresh", command=self.getOutputStatus)
->>>>>>> parent of c61d6ce... reverting to old commit due to change in direction of project
 
         fileMenu.add_separator()
 
         fileMenu.add_command(label="Exit", underline = 0, command=self.onExit)
         menubar.add_cascade(label="File", underline = 0, menu=fileMenu)
+
+
 
         self.pack(fill=BOTH, expand=1)
         self.var = IntVar()
@@ -470,7 +416,7 @@ class Master(Frame):
         for text, input in inputs:
             b = Radiobutton(self, text=text,
                             variable=v, value=input)
-            #b.grid(column=0, padx = 10, sticky=W)
+            b.grid(column=0, padx = 10, sticky=W)
 
         # get number of outputs from var and create buttons for each
         # output, each corresponding to a specific projector. When clicked
@@ -478,170 +424,20 @@ class Master(Frame):
         # which input is currently selected) and the output number to our
         # CustomInOut() function.
         logger.debug('====Init outputs====')
-        for i in range(int(configParser.get('general', 'numberOfOutputs'))):
+        for i in range(int(numOut)):
             vars()['btnOut' + str(i)] = Button(self, width=15, text="Projector " + str(i + 1), command=lambda i=i: self.setCustomInOut(v.get(), i+1) )
-            #vars()['btnOut' + str(i)].grid(row=i, column=2, sticky=E)
+            vars()['btnOut' + str(i)].grid(row=i, column=2, sticky=E)
 
         #get our status filled
-        #self.getOutputStatus()
+        self.getOutputStatus()
 
-    def onExit(self):
-        self.quit()
+        def onExit(self):
+            self.quit()
 
-    # ########################
-    # (cmd) Get Output Status
-    # ########################
-    # Same as above but without a lot of gui-specific code.
-    # need to just toss that stuff in conditionals lik I do for most of the other functions but eh
-    # ########################
-    def cmdGetOutputStatus(self):
-        inputStat = []
-        for output in range(int(configParser.get('general', 'numberOfOutputs'))):
-            #lets see if we can open the port
-            try:
-                com = serial.Serial(
-                    port = int(configParser.get('general', 'COMPortNumber'))-1,
-                    baudrate = 9600,
-                    parity = serial.PARITY_NONE,
-                    stopbits = serial.STOPBITS_ONE,
-                    bytesize = serial.EIGHTBITS,
-                    timeout = .4
-                )
-                #if it is open, then let's send our command
-                if com.isOpen():
-                    trashResponse = com.read(100)
-                    logger.debug("trash: " + trashResponse)
-                    com.write('Status' + str(int(output+1)) + '.') # int(string("fuck it")) w
-                    time.sleep(0.4)
-                    response = com.read(6)
-                    currentInput = response[-3:]
-                    logger.debug('Output ' + str(output) + '\'s current input:' + str(currentInput))
-                    inputStat.append(str(output) + "|" + str(currentInput))
-                    # print response
-                    com.close()
-            #if we were unable to open it then let's log the exception
-            except serial.SerialException as ex:
-                logger.debug('Port ' + str(int(configParser.get('general', 'COMPortNumber'))-1) + ' is unavailable: ' + ex) # int(string("fuck it")) w
-        status = ",".join(inputStat)
-        f = open('status.txt','w')
-        f.write(status) # python will convert \n to os.linesep
-        f.close()
-    # ########################
-    # (cmd) Custom In/Out function
-    # ########################
-    # Same as custInOut above, calls cmdGetOutputStatus though so no gui
-    # ########################
-    def cmdSetCustomInOut(self, input, output):
-        logger.debug('====================')
-        logger.debug('Set a custom config [cmd]')
-        logger.debug(str(input) + 'B' + str(output) + '.')
-        logger.debug('====================')
-        logger.debug(' ')
-        #lets see if we can open the port
-        try:
-            com = serial.Serial(
-                port = int(configParser.get('general', 'COMPortNumber'))-1,
-                baudrate = 9600,
-                parity = serial.PARITY_NONE,
-                stopbits = serial.STOPBITS_ONE,
-                bytesize = serial.EIGHTBITS
-            )
-            #if it is open, then let's send our command
-            if com.isOpen():
-                com.write(str(input) + 'B' + str(output) + '.')
-                com.close()
-                self.cmdGetOutputStatus()
-        #if we were unable to open it then let's log the exception
-        except serial.SerialException as ex:
-            logger.debug('Port ' + str(int(configParser.get('general', 'COMPortNumber'))-1) + ' is unavailable: ' + ex)
-            
 def main():
-    root.withdraw()
-    # ########################
-    # Argument Parser
-    # ########################
-    # Pulls arguments and decides which function to call
-    # arv[0] is the program itself, in that "avcontrol.exe gui",
-    # [0] is avcontrol.exe and [1] is gui
-    # ########################
-    m = Master(root)
-    if len(sys.argv) > 1:
-        parsed = sys.argv[1]
-    else:
-        parsed = None
 
-
-    logger.debug(''.join(sys.argv))
-
-    #spiffy case/switch implimentation from http://code.activestate.com/recipes/410692/
-    for case in switch(parsed):
-        if case('projOn'):
-            logger.debug('Projectors On | CMD')
-            m.projectorsOn()
-            break
-        if case('custInOut'):
-            # Usage:
-            # avcontrol.exe custInOut input output
-            logger.debug('custInOut | CMD')
-            m.cmdSetCustomInOut(sys.argv[2],sys.argv[3])
-            break
-        if case('stanInOut'):
-            logger.debug('stanInOut | CMD')
-            m.standardInOut(False)
-            break
-        if case('bmnToAll'):
-            m.bmnToAll(False)
-            break
-        if case('status'):
-            logger.debug('status')
-            m.cmdGetOutputStatus()
-            break
-        if case('gui'):
-            logger.debug('gui')
-            app = Master(root)
-
-            app.initUI()
-            root.mainloop()
-            break
-        if case('help'):
-            helptext = ("AV Control Version 1.2.0 \n"
-                        "Management interface for the Ani-Mod video matrix and certain Casio projectors\n\n"
-                        "Copyright (C) 2014 BMA, Inc.\n"
-                        "License MIT <http://opensource.org/licenses/MIT>\n"
-                        "This is free software: you are free to change and redistribute it.\n"
-                        "There is NO WARRANTY, to the extent permitted by law.\n\n"
-                        "Valid options:\n"
-                        "\tprojOn\n"
-                        "\t\tTurns on all projectors, starting with a host on a certain\n"
-                        "\t\tsubnet, both specified in the config.conf. Continues for a\n"
-                        "\t\tnumber of projectors specified in the config.conf. All \n"
-                        "\t\tprojector hosts must be in sequential order on the same subnet.\n\n"
-                        "\tcustInOut input output (where 'input' and 'output' are integer values)\n"
-                        "\t\tSets the specified input as the specified output's source.\n"
-                        "\t\tThere is not yet any validation so out-of-bounds values are\n"
-                        "\t\tstill accepted and just won't do anything.\n\n"
-                        "\tstanInOut\n"
-                        "\t\tSets all outputs to the standard configuration of\n"
-                        "\t\t[BMN, DTV1, BMN, DTV2, BMN, DTV3, ...], limited by number\n"
-                        "\t\tof outputs in the house.\n\n"
-                        "\tbmnToAll\n"
-                        "\t\tSets the BMN input as the source to all outputs.\n\n"
-                        "\tstatus\n"
-                        "\t\tReads the current input from each output\n\n"
-                        "\tgui\n"
-                        "\t\tBrings up the old barebones graphical user interface\n\n\n"
-                        "Report bugs to: jesse@dassle.us\n"
-                        "Software Github Page: <http://github.com/acostoss/Ani-Mod-Matrix-Control/>")
-            sys.stdout.write(helptext)
-            break
-        if case(): # default, could also just omit condition or 'if True'
-            if len(sys.argv) > 1: #unknown argument given, and we know there is at least one
-                args = ", ".join(sys.argv[1:])
-                sys.stdout.write("Invalid argument(s) given: '" + args + "'\nPlease use the 'help' argument for a list of accepted arguments")
-            else: #unknown argument given, is actually just empty
-                sys.stdout.write("No argument given. Please use the 'help' argument for a list of accepted arguments")
-            # No need to break here, it'll stop anyway
-
+    app = Master(root)
+    root.mainloop()
 
 
 if __name__ == '__main__':
