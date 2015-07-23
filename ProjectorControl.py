@@ -60,30 +60,6 @@ root = Tk()
 
 root.iconbitmap('avicon.ico')
 
-# ######################################################
-# ######################################################
-# ######################################################
-# ######################################################
-# ######################################################
-# ######################################################
-# ######################################################
-# NOTEBOOK SHIT
-# ######################################################
-# ######################################################
-# ######################################################
-# ######################################################
-# ######################################################
-note = Notebook(root)
-tab1 = Frame(note)
-tab2 = Frame(note)
-tab3 = Frame(note)
-Button(tab1, text='Exit', command=root.destroy).pack(padx=100, pady=100)
-
-note.add(tab1, text = "Tab One")
-note.add(tab2, text = "Tab Two")
-note.add(tab3, text = "Tab Three")
-note.pack(fill=BOTH, expand=1)
-
 # init the variable to be used by our radio buttons to determine which input was selected
 v = StringVar()
 v.set("1") # default it to 1, the first input
@@ -289,6 +265,38 @@ class Master(Frame):
         time.sleep(0.5)
         if (gui == True):
             self.getOutputStatus() #refresh our status
+            
+    # 
+    # Custom Command Function
+    #
+    #
+    #
+    #
+    #
+    #
+    # 
+    # 
+    
+    def getCustom1Cmd(self):
+        customCmd1 = configParser.get('general', 'custom1cmd')
+        try:
+            com = serial.Serial(
+                port = int(configParser.get('general', 'COMPortNumber'))-1,
+                baudrate = 9600,
+                parity = serial.PARITY_NONE,
+                stopbits = serial.STOPBITS_ONE,
+                bytesize = serial.EIGHTBITS
+            )
+            #if it is open, then let's send our command
+            if com.isOpen():
+                for input, output in inOuts:
+                    com.write(str(customCmd1))
+                    logger.debug("command:" + str(customCmd1))
+            com.close()
+        #if we were unable to open it then let's log the exception
+        except serial.SerialException as ex:
+            logger.debug('Port ' + str(int(configParser.get('general', 'COMPortNumber'))-1) + ' is unavailable: ' + ex)
+   
 
     # ########################
     # Custom In/Out function
@@ -395,6 +403,10 @@ class Master(Frame):
         fileMenu.add_command(label="Bowling Music to all", command=self.bmnToAll)
         fileMenu.add_command(label="Turn on projectors", command=self.projectorsOn)
         fileMenu.add_command(label="Refresh", command=self.getOutputStatus)
+        
+        fileMenu.add_separator()
+        
+        fileMenu.add_command(label=configParser.get('general', 'custom1Name'), command=self.getCustom1Cmd)
 
         fileMenu.add_separator()
 
