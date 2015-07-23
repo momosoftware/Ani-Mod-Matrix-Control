@@ -3,7 +3,7 @@
 #description    :Management interface for the Ani-Mod video matrix
 #author         :Jesse "acostoss" Hamilton
 #date           :2014-09-24
-#version        :0.9.6
+#version        :1.2.8
 #usage          :python setup.py py2exe
 #notes          :Only tested in Windows 8.1 Pro
 #todo           :Redirect to log files without stdout and stderr
