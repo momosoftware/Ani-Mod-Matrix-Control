@@ -173,6 +173,39 @@ class Master(Frame):
         except serial.SerialException as ex:
             logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
 
+    # ########################
+    # Standard In Out Odd
+    # ########################
+    # need to rewrite it to split into groups by a 
+    # divisor and output to those in even/odd, but 
+    # for now we'll just do it the manual way to 
+    # get it done and in production at the center
+    # ########################
+    def standardInOutOdd(self):
+        logger.debug('====================')
+        logger.debug('Set standard AV config odd')
+        outputList = ['1B1.', '7B2.', '1B3.', '1B4.', '7B5.', '1B6.', '1B7.', '7B8.', '1B9.']
+        logger.debug(outputList)
+        try:
+            com = serial.Serial(
+                port = int(comNum)-1,
+                baudrate = 9600,
+                parity = serial.PARITY_NONE,
+                stopbits = serial.STOPBITS_ONE,
+                bytesize = serial.EIGHTBITS
+            )
+            #if it is open, then let's send our command
+            if com.isOpen():
+                for output in outputList:
+                    com.write(str(output))
+            com.close()
+        #if we were unable to open it then let's log the exception
+        except serial.SerialException as ex:
+            logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
+
+        time.sleep(0.5)
+        self.getOutputStatus() #refresh our status
+        
     def standardInOut(self):
         logger.debug('====================')
         logger.debug('Set standard AV config')
@@ -339,6 +372,9 @@ class Master(Frame):
     def initUI(self):
         # set window title
         self.parent.title("Projector Control")
+        
+        
+        oddOuts = configParser.get('general', 'oddOuts')
 
         # init menubar
         menubar = Menu(self.parent)
@@ -348,9 +384,15 @@ class Master(Frame):
         fileMenu = Menu(menubar)
         sceneMenu = Menu(fileMenu)
         projMenu = Menu(fileMenu)
-
-        sceneMenu.add_command(label="Standard setup", command=self.standardInOut)
+        
+        
+        if oddOuts == "true":
+            sceneMenu.add_command(label="Standard setup", command=self.standardInOutOdd)
+        else:
+            sceneMenu.add_command(label="Standard setup", command=self.standardInOut)
+            
         sceneMenu.add_command(label="Bowling Music to all", command=self.bmnToAll)
+        
         fileMenu.add_cascade(label="Scenes", underline = 0, menu=sceneMenu)
 
         projMenu.add_command(label="Turn on projectors", underline = 0, command=self.projectorsOn)
@@ -362,7 +404,7 @@ class Master(Frame):
 
         fileMenu.add_separator()
 
-        fileMenu.add_command(label="Exit", underline = 0, command=self.onExit)
+        fileMenu.add_command(label="Exit", underline = 0, command=root.quit())
         menubar.add_cascade(label="File", underline = 0, menu=fileMenu)
 
 
