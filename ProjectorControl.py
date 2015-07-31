@@ -3,7 +3,7 @@
 #description    :Management interface for the Ani-Mod video matrix, Casio Projectors
 #author         :Jesse "acostoss" Hamilton
 #date           :2014-09-24
-#version        :1.3.0
+#version        :1.3.1
 #usage          :python setup.py py2exe
 #notes          :Tested in Windows 7 Pro and 8.1 Pro, should work wherever python works
 #todo           :add program status bar to bottom of window
