@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 #title          :ProjectorControl.py
-#description    :Management interface for the Ani-Mod video matrix
+#description    :Management interface for the Ani-Mod video matrix, Casio Projectors
 #author         :Jesse "acostoss" Hamilton
 #date           :2014-09-24
-#version        :1.2.8
+#version        :1.3.0
 #usage          :python setup.py py2exe
-#notes          :Only tested in Windows 8.1 Pro
-#todo           :Redirect to log files without stdout and stderr
+#notes          :Tested in Windows 7 Pro and 8.1 Pro, should work wherever python works
 #todo           :add program status bar to bottom of window
 #pythonVersion  :2.7.8
 #===============================================================================
@@ -417,7 +416,9 @@ class Master(Frame):
         # from config file and assign var
         logger.debug('==Read config file==')
         numIn = configParser.get('general', 'numberOfInputs')
-        bmnIn = configParser.get('general', 'bowlingMusicNetworkInputNumber')
+        bmnStart = configParser.get('general', 'bowlingMusicNetworkInputNumber')
+        bmnCount = configParser.get('general', 'numberOfBMN')
+        
 
         # ######################################################
         # ######################################################
@@ -447,11 +448,25 @@ class Master(Frame):
         # unless it is # matches the bowling music input number (bmnIn)
         # at which point we name it Bowling Music
         logger.debug('=====Init input=====')
-        for i in range(int(numIn)):
-            if i != int(bmnIn) - 1:
-                inputs.append(['DTV' + str(i + 1), str(i + 1)])
+        inputIterable = iter(range(int(numIn)+ 1))
+        for i in inputIterable:
+            logger.debug('iterable turn ' + str(i))
+            if i + 1 == int(bmnStart):
+                logger.debug('i == bmnStart')
+                for bmn in range(int(bmnCount)):
+                    inputs.append(['Bowling Music' + str(int(bmn) + int(bmnStart)), str(int(bmn) + int(bmnStart))]) #i hate myself for this
+                    logger.debug('Bowling Music' + str(int(bmn) + int(bmnStart)))
+                    next(inputIterable)
             else:
-                inputs.append(['Bowling Music', str(bmnIn)])
+                inputs.append(['DTV' + str(i), str(i)])   
+        
+        
+        
+       # for i in range(int(numIn)):
+       #     if i != int(bmnIn) - 1:
+        #        inputs.append(['DTV' + str(i + 1), str(i + 1)])
+         #   else:
+          #      inputs.append(['Bowling Music', str(bmnIn)])
 
         # take our list of inputs and make radio buttons for them,
         # storing the value in the variable "v" that we initialized earlier

@@ -3,7 +3,7 @@ import py2exe
 
 setup(
     zipfile = None,
-    console=[
+    windows=[
         {
             'script':'ProjectorControl.py'
         }
