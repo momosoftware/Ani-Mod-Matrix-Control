@@ -411,23 +411,15 @@ class Master(Frame):
         self.pack(fill=BOTH, expand=1)
         self.var = IntVar()
 
-        # pull total number of inputs as well
-        # as the Bowling Music input number
-        # from config file and assign var
+        # pull number of inputs, number of bmns, 
+        # and which input number the bmns start at for use in initUI
         logger.debug('==Read config file==')
         numIn = configParser.get('general', 'numberOfInputs')
         bmnStart = configParser.get('general', 'bowlingMusicNetworkInputNumber')
         bmnCount = configParser.get('general', 'numberOfBMN')
         
-
-        # ######################################################
-        # ######################################################
-        # ######################################################
         # Center window by getting screensize from Windows
         # dividing by 2, then subtracting windowsize/2
-        # ######################################################
-        # ######################################################
-        # ######################################################
         screenWidth = int(GetSystemMetrics (0))
         screenHeight = int(GetSystemMetrics (1))
 
@@ -441,12 +433,8 @@ class Master(Frame):
         windowSizePos = str(windowWidth) + "x" + str(windowHeight) + "+" + str(windowX) + "+" + str(windowY)
         root.geometry(windowSizePos)
 
-        #init our inputs dict
+        #init our inputs dict then fill it
         inputs = []
-
-        # then fill it, naming it DTV# where # is the input number,
-        # unless it is # matches the bowling music input number (bmnIn)
-        # at which point we name it Bowling Music
         logger.debug('=====Init input=====')
         inputIterable = iter(range(int(numIn)+ 1))
         for i in inputIterable:
@@ -454,19 +442,11 @@ class Master(Frame):
             if i + 1 == int(bmnStart):
                 logger.debug('i == bmnStart')
                 for bmn in range(int(bmnCount)):
-                    inputs.append(['Bowling Music' + str(int(bmn) + int(bmnStart)), str(int(bmn) + int(bmnStart))]) #i hate myself for this
-                    logger.debug('Bowling Music' + str(int(bmn) + int(bmnStart)))
+                    inputs.append(['Bowling Music ' + str(int(bmn) + int(bmnStart)), str(int(bmn) + int(bmnStart))]) #i hate myself for this
+                    logger.debug('Bowling Music ' + str(int(bmn) + int(bmnStart)))
                     next(inputIterable)
             else:
-                inputs.append(['DTV' + str(i), str(i)])   
-        
-        
-        
-       # for i in range(int(numIn)):
-       #     if i != int(bmnIn) - 1:
-        #        inputs.append(['DTV' + str(i + 1), str(i + 1)])
-         #   else:
-          #      inputs.append(['Bowling Music', str(bmnIn)])
+                inputs.append(['DTV' + str(i - int(bmnCount)), str(i)])   
 
         # take our list of inputs and make radio buttons for them,
         # storing the value in the variable "v" that we initialized earlier
