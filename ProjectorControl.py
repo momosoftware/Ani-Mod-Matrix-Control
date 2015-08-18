@@ -1,13 +1,13 @@
 #!/usr/bin/env python
-#title          :ProjectorControl.py
-#description    :Management interface for the Ani-Mod video matrix, Casio Projectors
-#author         :Jesse "acostoss" Hamilton
-#date           :2014-09-24
-#version        :1.3.1
-#usage          :python setup.py py2exe
-#notes          :Tested in Windows 7 Pro and 8.1 Pro, should work wherever python works
-#todo           :add program status bar to bottom of window
-#pythonVersion  :2.7.8
+#title          : ProjectorControl.py
+#description    : Management interface for the Ani-Mod video matrix, Casio Projectors
+#author         : Jesse "acostoss" Hamilton
+#date           : 2014-09-24
+#version        : 1.4.0
+#usage          : python setup.py py2exe
+#notes          : Tested in Windows 7 Pro and 8.1 Pro, should work wherever python works
+#todo           : add program status bar to bottom of window
+#pythonVersion  : 3.4.3
 #===============================================================================
 
 from tkinter import *
@@ -339,7 +339,7 @@ class Master(Frame):
             )
             #if it is open, then let's send our command
             if com.isOpen():
-                com.write(str(input) + 'B' + str(output) + '.')
+                com.write(bytes(str(input) + 'B' + str(output) + '.', 'UTF-8'))
                 com.close()
                 self.getOutputStatus()
         #if we were unable to open it then let's log the exception
@@ -481,10 +481,11 @@ class Master(Frame):
 
         # take our list of inputs and make radio buttons for them,
         # storing the value in the variable "v" that we initialized earlier
+        
         for text, input in inputs:
-            b = Radiobutton(self, text=text,
-                            variable=v, value=input)
-            b.grid(column=0, padx = 10, sticky=W)
+            row = int(input) - 1
+            b = Radiobutton(self, text=text, variable=v, value=input)
+            b.grid(row=row, column=0, padx = 10, sticky=W)
 
         # get number of outputs from var and create buttons for each
         # output, each corresponding to a specific projector. When clicked
