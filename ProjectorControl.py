@@ -10,16 +10,15 @@
 #pythonVersion  :2.7.8
 #===============================================================================
 
-from Tkinter import *
+from tkinter import *
 import serial
 import threading
-import ConfigParser
+import configparser
 import logging
 import sys
 import time
-import tkMessageBox
-import httplib
-import urllib
+import http.client
+import urllib.request, urllib.parse, urllib.error
 import random
 from win32api import GetSystemMetrics
 
@@ -46,15 +45,15 @@ logger.addHandler(ch)
 logger.debug('====ProgramStart====')
 
 # load our config and prepare to read the file
-configParser = ConfigParser.RawConfigParser()
+configparser = configparser.RawConfigParser()
 configFilePath = r'config.conf'
-configParser.read(configFilePath)
+configparser.read(configFilePath)
 
 # pull config values from the file to
 # fill our comNum and bmnNum globals
-comNum = configParser.get('general', 'COMPortNumber')
-bmnNum = configParser.get('general', 'BowlingMusicNetworkInputNumber')
-numOut = configParser.get('general', 'numberOfOutputs')
+comNum = configparser.get('general', 'COMPortNumber')
+bmnNum = configparser.get('general', 'BowlingMusicNetworkInputNumber')
+numOut = configparser.get('general', 'numberOfOutputs')
 
 # initialize our gui
 root = Tk()
@@ -114,8 +113,8 @@ class Master(Frame):
                 #if it is open, then let's send our command
                 if com.isOpen():
                     trashResponse = com.read(100)
-                    logger.debug("trash: " + trashResponse)
-                    com.write('Status' + str(int(output+1)) + '.') # int(string("fuck it")) w
+                    logger.debug("trash: " + trashResponse.decode('UTF-8'))
+                    com.write(bytes('Status' + str(int(output+1)) + '.', 'UTF-8'))  # int(string("fuck it")) w
                     time.sleep(0.4)
                     response = com.read(6)
                     currentInput = response[-3:]
@@ -135,8 +134,38 @@ class Master(Frame):
             root.deiconify()
             statusModal.grab_release()
             statusModal.destroy()
-        global notFirstRun
         notFirstRun = True
+        
+    def getSingleOutputStatus(self, reqOutput):
+        logger.debug('================')
+        logger.debug('Get status for output #' + str(reqOutput))
+        logger.debug('================')
+        
+        try:
+            com = serial.Serial(
+                port = int(comNum)-1,
+                baudrate = 9600,
+                parity = serial.PARITY_NONE,
+                stopbits = serial.STOPBITS_ONE,
+                bytesize = serial.EIGHTBITS,
+                timeout = .4
+            )
+            #if it is open, then let's send our command
+            if com.isOpen():
+                trashResponse = com.read(100)
+                logger.debug("trash: " + trashResponse.decode('utf-8'))
+                com.write(bytes('Status' + str(int(reqOutput+1)) + '.', 'UTF-8')) # int(string("fuck it")) w
+                time.sleep(0.4)
+                response = com.read(6)
+                currentInput = response[-3:]
+                logger.debug('Output ' + str(reqOutput) + '\'s current input:' + str(currentInput))
+                w = Label(self, text=currentInput, relief=SUNKEN, width=5).grid(row=reqOutput, padx = 5,  column=1)
+                # print response
+                com.close()
+        #if we were unable to open it then let's log the exception
+        except serial.SerialException as ex:
+            logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex) # int(string("fuck it")) w
+        
 
     # ########################
     # Bowling Music to all
@@ -210,9 +239,9 @@ class Master(Frame):
         logger.debug('Set standard AV config')
         #start with 1
         currentInput = 1
-        numIn = configParser.get('general', 'numberOfInputs')
+        numIn = configparser.get('general', 'numberOfInputs')
         # define our Bowling Music Input
-        bmnIn = configParser.get('general', 'bowlingMusicNetworkInputNumber')
+        bmnIn = configparser.get('general', 'bowlingMusicNetworkInputNumber')
         #iterate through the loop a number of times equal to our number of outputs
 
         inOuts = []
@@ -345,8 +374,8 @@ class Master(Frame):
         logger.debug('Turn on a specific projector')
         logger.debug('====================')
 
-        projSubnet = configParser.get('general', 'projectorSubnet')
-        projHost = configParser.get('general', 'projectorStartingHost')
+        projSubnet = configparser.get('general', 'projectorSubnet')
+        projHost = configparser.get('general', 'projectorStartingHost')
         currentProjHost = int(projHost)
         for i in range(int(numOut)):
             projIP = "192.168." + str(projSubnet) + "." + str(currentProjHost)
@@ -354,10 +383,10 @@ class Master(Frame):
             #Status         command=24003100    0e00023100000000
             logger.debug("URL: " + projIP)
             projCMD = "command=24003100    0f0001010003010001"
-            params = urllib.urlencode({'@number': 12524, '@type': 'issue', '@action': 'show'})
+            params = urllib.parse.urlencode({'@number': 12524, '@type': 'issue', '@action': 'show'})
             headers = {"Content-Type": "application/x-www-form-urlencoded", "Cache-Control": "no-cache"}
             logger.debug(headers)
-            projCON = httplib.HTTPConnection(projIP)
+            projCON = http.client.HTTPConnection(projIP)
             projCON.request("POST", "/tgi/return.tgi?sid=" + str(random.random()), projCMD, headers)
             projRESP = projCON.getresponse()
             logger.debug(projRESP.status)
@@ -373,7 +402,7 @@ class Master(Frame):
         self.parent.title("Projector Control")
         
         
-        oddOuts = configParser.get('general', 'oddOuts')
+        oddOuts = configparser.get('general', 'oddOuts')
 
         # init menubar
         menubar = Menu(self.parent)
@@ -391,6 +420,8 @@ class Master(Frame):
             sceneMenu.add_command(label="Standard setup", command=self.standardInOut)
             
         sceneMenu.add_command(label="Bowling Music to all", command=self.bmnToAll)
+        
+        sceneMenu.add_command(label="test", command=self.getSingleOutputStatus(2))
         
         fileMenu.add_cascade(label="Scenes", underline = 0, menu=sceneMenu)
 
@@ -414,29 +445,29 @@ class Master(Frame):
         # pull number of inputs, number of bmns, 
         # and which input number the bmns start at for use in initUI
         logger.debug('==Read config file==')
-        numIn = configParser.get('general', 'numberOfInputs')
-        bmnStart = configParser.get('general', 'bowlingMusicNetworkInputNumber')
-        bmnCount = configParser.get('general', 'numberOfBMN')
+        numIn = configparser.get('general', 'numberOfInputs')
+        bmnStart = configparser.get('general', 'bowlingMusicNetworkInputNumber')
+        bmnCount = configparser.get('general', 'numberOfBMN')
         
         # Center window by getting screensize from Windows
         # dividing by 2, then subtracting windowsize/2
         screenWidth = int(GetSystemMetrics (0))
         screenHeight = int(GetSystemMetrics (1))
 
-        windowWidth = int(configParser.get('general', 'windowWidth'))
-        windowHeight = int(configParser.get('general', 'windowHeight'))
+        windowWidth = int(configparser.get('general', 'windowWidth'))
+        windowHeight = int(configparser.get('general', 'windowHeight'))
 
         windowX = screenWidth/2 - windowWidth/2
         windowY = screenHeight/2 - windowHeight/2
 
         # set window size
-        windowSizePos = str(windowWidth) + "x" + str(windowHeight) + "+" + str(windowX) + "+" + str(windowY)
+        windowSizePos = str(windowWidth) + "x" + str(windowHeight) + "+" + str(int(windowX)) + "+" + str(int(windowY))
         root.geometry(windowSizePos)
 
         #init our inputs dict then fill it
         inputs = []
         logger.debug('=====Init input=====')
-        inputIterable = iter(range(int(numIn)+ 1))
+        inputIterable = iter(list(range(int(numIn)+ 1)))
         for i in inputIterable:
             logger.debug('iterable turn ' + str(i))
             if i + 1 == int(bmnStart):
