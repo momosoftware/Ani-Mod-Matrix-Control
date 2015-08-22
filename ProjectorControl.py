@@ -3,7 +3,7 @@
 #description    : Management interface for the Ani-Mod video matrix, Casio Projectors
 #author         : Jesse "acostoss" Hamilton
 #date           : 2014-09-24
-#version        : 1.4.0
+#version        : 1.4.2
 #usage          : python setup.py py2exe
 #notes          : Tested in Windows 7 Pro and 8.1 Pro, should work wherever python works
 #todo           : add program status bar to bottom of window
@@ -21,6 +21,7 @@ import http.client
 import urllib.request, urllib.parse, urllib.error
 import random
 from win32api import GetSystemMetrics
+from DirectPy import DIRECTV
 
 
 global comNum, bmnNum, numOut, com, v, COMPortNumber, BowlingMusicNetworkInputNumber, screenWidth, screenHeight
@@ -138,7 +139,7 @@ class Master(Frame):
         
     def getSingleOutputStatus(self, reqOutput):
         logger.debug('================')
-        logger.debug('Get status for output #' + str(reqOutput))
+        logger.debug('Get status for output #' + str(reqOutput + 1))
         logger.debug('================')
         
         try:
@@ -154,12 +155,13 @@ class Master(Frame):
             if com.isOpen():
                 trashResponse = com.read(100)
                 logger.debug("trash: " + trashResponse.decode('utf-8'))
-                com.write(bytes('Status' + str(int(reqOutput+1)) + '.', 'UTF-8')) # int(string("fuck it")) w
+                com.write(bytes('Status' + str(int(reqOutput)) + '.', 'UTF-8')) # int(string("fuck it")) w
+                logger.debug('Status' + str(int(reqOutput+1)) + '.')
                 time.sleep(0.4)
                 response = com.read(6)
                 currentInput = response[-3:]
                 logger.debug('Output ' + str(reqOutput) + '\'s current input:' + str(currentInput))
-                w = Label(self, text=currentInput, relief=SUNKEN, width=5).grid(row=reqOutput, padx = 5,  column=1)
+                w = Label(self, text=currentInput, relief=SUNKEN, width=5).grid(row=reqOutput-1, padx = 5,  column=1)
                 # print response
                 com.close()
         #if we were unable to open it then let's log the exception
@@ -193,7 +195,7 @@ class Master(Frame):
             )
             #if it is open, then let's send our command
             if com.isOpen():
-                com.write(str(bmnNum) + 'All.')
+                com.write(bytes(str(bmnNum) + 'All.', 'UTF-8'))
                 com.close()
                 #get our status refilled
                 self.getOutputStatus()
@@ -225,7 +227,7 @@ class Master(Frame):
             #if it is open, then let's send our command
             if com.isOpen():
                 for output in outputList:
-                    com.write(str(output))
+                    com.write(bytes(str(output), 'UTF-8'))
             com.close()
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
@@ -296,7 +298,7 @@ class Master(Frame):
             #if it is open, then let's send our command
             if com.isOpen():
                 for input, output in inOuts:
-                    com.write(str(input) + 'B' + str(output) + '.')
+                    com.write(bytes(str(input) + 'B' + str(output) + '.', 'UTF-8'))
                     logger.debug(str(input) + 'B' + str(output) + '.')
                 com.close()
         #if we were unable to open it then let's log the exception
@@ -341,7 +343,7 @@ class Master(Frame):
             if com.isOpen():
                 com.write(bytes(str(input) + 'B' + str(output) + '.', 'UTF-8'))
                 com.close()
-                self.getOutputStatus()
+                self.getSingleOutputStatus(output)
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
             logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex)
@@ -420,8 +422,6 @@ class Master(Frame):
             sceneMenu.add_command(label="Standard setup", command=self.standardInOut)
             
         sceneMenu.add_command(label="Bowling Music to all", command=self.bmnToAll)
-        
-        sceneMenu.add_command(label="test", command=self.getSingleOutputStatus(2))
         
         fileMenu.add_cascade(label="Scenes", underline = 0, menu=sceneMenu)
 
