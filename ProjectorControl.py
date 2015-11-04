@@ -100,6 +100,8 @@ class Master(Frame):
             loadingLabel = Label(statusModal, text="loading").grid(row=0, column=0)
             root.withdraw()
             statusModal.grab_set()
+            if customOutput == "True":
+                numOut = len(int(configparser.get('general', 'customOutput')))
 
         for output in range(int(numOut)):
             #lets see if we can open the port
@@ -515,11 +517,15 @@ class Master(Frame):
         # which input is currently selected) and the output number to our
         # CustomInOut() function.
         logger.debug('====Init outputs====')
-        generateOutputs = bool(configparser.get('general', 'generateOutputs'))
-        if generateInputs == True:
-            for i in range(int(numOut)):
-                vars()['btnOut' + str(i)] = Button(self, width=15, text="Projector " + str(i + 1), command=lambda i=i: self.setCustomInOut(v.get(), i+1) )
-                vars()['btnOut' + str(i)].grid(row=i, column=2, sticky=E)
+        generateOutputs = configparser.get('general', 'generateOutputs')
+        if generateOutputs != "True":
+            customOutputs = str(configparser.get('general', 'customOutputs'))
+            outputNames = customOutputs.split(',')
+            outputNums = list(range(len(outputNames)))
+            outputs = dict(zip(outputNames, outputNums))
+            for text, output in outputs.items():
+                vars()['btnOut' + str(output + 1)] = Button(self, width=15, text=text, command=lambda output=output: self.setCustomInOut(v.get(), output+1) )
+                vars()['btnOut' + str(output + 1)].grid(row=output, column=2, sticky=E)
         else:
             for i in range(int(numOut)):
                 vars()['btnOut' + str(i)] = Button(self, width=15, text="Projector " + str(i + 1), command=lambda i=i: self.setCustomInOut(v.get(), i+1) )
