@@ -3,9 +3,6 @@ import py2exe
 
 setup(
     zipfile = None,
-    windows=[
-        {
-            'script':'ProjectorControl.py'
-        }
-    ],
+    options = {'py2exe': {'bundle_files': 2, 'compressed': True}},
+    windows=[{'script':'ProjectorControl.py'}],
 )

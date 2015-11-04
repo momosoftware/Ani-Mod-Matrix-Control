@@ -7,6 +7,7 @@
 #usage          : python setup.py py2exe
 #notes          : Tested in Windows 7 Pro and 8.1 Pro, should work wherever python works
 #todo           : add program status bar to bottom of window
+#               : add mms inputs and more outputs
 #pythonVersion  : 3.4.3
 #===============================================================================
 
@@ -464,26 +465,44 @@ class Master(Frame):
         windowSizePos = str(windowWidth) + "x" + str(windowHeight) + "+" + str(int(windowX)) + "+" + str(int(windowY))
         root.geometry(windowSizePos)
 
-        #init our inputs dict then fill it
-        inputs = []
+        #init our inputs list then fill it
         logger.debug('=====Init input=====')
-        inputIterable = iter(list(range(int(numIn)+ 1)))
-        for i in inputIterable:
-            logger.debug('iterable turn ' + str(i))
-            if i + 1 == int(bmnStart):
-                logger.debug('i == bmnStart')
-                for bmn in range(int(bmnCount)):
-                    inputs.append(['Bowling Music ' + str(int(bmn) + int(bmnStart)), str(int(bmn) + int(bmnStart))]) #i hate myself for this
-                    logger.debug('Bowling Music ' + str(int(bmn) + int(bmnStart)))
-                    next(inputIterable)
-            else:
-                inputs.append(['DTV' + str(i - int(bmnCount)), str(i)])   
+        inputs = []
+        generateInputs = bool(configparser.get('general', 'generateInputs'))
+        if generateInputs == "True":
+            inputIterable = iter(list(range(int(numIn)+ 1)))
+            for i in inputIterable:
+                logger.debug('iterable turn ' + str(i))
+                if i + 1 == int(bmnStart):
+                    logger.debug('i == bmnStart')
+                    for bmn in range(int(bmnCount)):
+                        inputs.append(['Bowling Music ' + str(int(bmn) + int(bmnStart)), str(int(bmn) + int(bmnStart))]) #i hate myself for this
+                        logger.debug('Bowling Music ' + str(int(bmn) + int(bmnStart)))
+                        next(inputIterable)
+                else:
+                    inputs.append(['DTV' + str(i - int(bmnCount)), str(i)]) 
+        else:
+            customInputs = str(configparser.get('general', 'customInputs'))
+            inputNames = customInputs.split(',')
+            logger.debug("custom inputs = ")
+            logger.debug(inputNames)
 
         # take our list of inputs and make radio buttons for them,
         # storing the value in the variable "v" that we initialized earlier
         
-        for text, input in inputs:
-            row = int(input) - 1
+        logger.debug(inputs)
+        
+        inputNums = []
+        
+        if generateInputs != "True":
+            inputNums = list(range(len(inputNames)))
+            inputs = dict(zip(inputNames, inputNums))
+            logger.debug(inputs)
+        
+        for text, input in inputs.items():
+            logger.debug(text)
+            logger.debug(input)
+            row = int(input)
             b = Radiobutton(self, text=text, variable=v, value=input)
             b.grid(row=row, column=0, padx = 10, sticky=W)
 
@@ -493,9 +512,15 @@ class Master(Frame):
         # which input is currently selected) and the output number to our
         # CustomInOut() function.
         logger.debug('====Init outputs====')
-        for i in range(int(numOut)):
-            vars()['btnOut' + str(i)] = Button(self, width=15, text="Projector " + str(i + 1), command=lambda i=i: self.setCustomInOut(v.get(), i+1) )
-            vars()['btnOut' + str(i)].grid(row=i, column=2, sticky=E)
+        generateOutputs = bool(configparser.get('general', 'generateOutputs'))
+        if generateInputs == True:
+            for i in range(int(numOut)):
+                vars()['btnOut' + str(i)] = Button(self, width=15, text="Projector " + str(i + 1), command=lambda i=i: self.setCustomInOut(v.get(), i+1) )
+                vars()['btnOut' + str(i)].grid(row=i, column=2, sticky=E)
+        else:
+            for i in range(int(numOut)):
+                vars()['btnOut' + str(i)] = Button(self, width=15, text="Projector " + str(i + 1), command=lambda i=i: self.setCustomInOut(v.get(), i+1) )
+                vars()['btnOut' + str(i)].grid(row=i, column=2, sticky=E)
 
         #get our status filled
         self.getOutputStatus()
