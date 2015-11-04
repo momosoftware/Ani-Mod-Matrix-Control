@@ -468,7 +468,7 @@ class Master(Frame):
         #init our inputs list then fill it
         logger.debug('=====Init input=====')
         inputs = []
-        generateInputs = bool(configparser.get('general', 'generateInputs'))
+        generateInputs = configparser.get('general', 'generateInputs')
         if generateInputs == "True":
             inputIterable = iter(list(range(int(numIn)+ 1)))
             for i in inputIterable:
@@ -498,13 +498,16 @@ class Master(Frame):
             inputNums = list(range(len(inputNames)))
             inputs = dict(zip(inputNames, inputNums))
             logger.debug(inputs)
-        
-        for text, input in inputs.items():
-            logger.debug(text)
-            logger.debug(input)
-            row = int(input)
-            b = Radiobutton(self, text=text, variable=v, value=input)
-            b.grid(row=row, column=0, padx = 10, sticky=W)
+            for text, input in inputs.items():
+                row = int(input)
+                b = Radiobutton(self, text=text, variable=v, value=str(int(input) + 1))
+                b.grid(row=row, column=0, padx = 10, sticky=W)
+        else:
+            for text, input in inputs:
+                row = int(input) - 1
+                b = Radiobutton(self, text=text, variable=v, value=input)
+                b.grid(row=row, column=0, padx = 10, sticky=W)
+                
 
         # get number of outputs from var and create buttons for each
         # output, each corresponding to a specific projector. When clicked
