@@ -3,7 +3,7 @@
 #description    : Management interface for the Ani-Mod video matrix, Casio Projectors
 #author         : Jesse "acostoss" Hamilton
 #date           : 2014-09-24
-#version        : 1.5.1
+#version        : 1.5.2
 #usage          : python setup.py py2exe
 #notes          : Tested in Windows 7 Pro and 8.1 Pro, should work wherever python works
 #todo           : add program status bar to bottom of window
@@ -81,7 +81,13 @@ class Master(Frame):
     # ########################
     def getOutputStatus(self):
         logger.debug('====Init Status====')
-
+        generateOutputs = configparser.get('general', 'generateOutputs')
+        if generateOutputs != "True":
+            customOutputs = configparser.get('general', 'customOutputs')
+            outputNames = customOutputs.split(',')
+            numOut = len(outputNames)
+            logger.debug("number of outputs= " + str(numOut))
+        
         try:
             notFirstRun
         except NameError:
@@ -100,8 +106,7 @@ class Master(Frame):
             loadingLabel = Label(statusModal, text="loading").grid(row=0, column=0)
             root.withdraw()
             statusModal.grab_set()
-            if customOutput == "True":
-                numOut = len(int(configparser.get('general', 'customOutput')))
+            
 
         for output in range(int(numOut)):
             #lets see if we can open the port
