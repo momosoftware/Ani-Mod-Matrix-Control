@@ -12,6 +12,7 @@
 #===============================================================================
 
 from tkinter import *
+from tkinter.ttk import *
 import serial
 import threading
 import configparser
@@ -87,7 +88,7 @@ class Master(Frame):
             outputNames = customOutputs.split(',')
             numOut = len(outputNames)
             logger.debug("number of outputs= " + str(numOut))
-        
+
         try:
             notFirstRun
         except NameError:
@@ -106,9 +107,9 @@ class Master(Frame):
             loadingLabel = Label(statusModal, text="loading").grid(row=0, column=0)
             root.withdraw()
             statusModal.grab_set()
-            
 
-        for output in range(int(numOut)):
+
+        for output in range(int(configparser.get('general', 'numberOfOutputs'))):
             #lets see if we can open the port
             try:
                 com = serial.Serial(
@@ -144,12 +145,12 @@ class Master(Frame):
             statusModal.grab_release()
             statusModal.destroy()
         notFirstRun = True
-        
+
     def getSingleOutputStatus(self, reqOutput):
         logger.debug('================')
         logger.debug('Get status for output #' + str(reqOutput + 1))
         logger.debug('================')
-        
+
         try:
             com = serial.Serial(
                 port = int(comNum)-1,
@@ -175,7 +176,7 @@ class Master(Frame):
         #if we were unable to open it then let's log the exception
         except serial.SerialException as ex:
             logger.debug('Port ' + str(int(comNum)-1) + ' is unavailable: ' + ex) # int(string("fuck it")) w
-        
+
 
     # ########################
     # Bowling Music to all
@@ -214,9 +215,9 @@ class Master(Frame):
     # ########################
     # Standard In Out Odd
     # ########################
-    # need to rewrite it to split into groups by a 
-    # divisor and output to those in even/odd, but 
-    # for now we'll just do it the manual way to 
+    # need to rewrite it to split into groups by a
+    # divisor and output to those in even/odd, but
+    # for now we'll just do it the manual way to
     # get it done and in production at the center
     # ########################
     def standardInOutOdd(self):
@@ -243,7 +244,7 @@ class Master(Frame):
 
         time.sleep(0.5)
         self.getOutputStatus() #refresh our status
-        
+
     def standardInOut(self):
         logger.debug('====================')
         logger.debug('Set standard AV config')
@@ -410,8 +411,8 @@ class Master(Frame):
     def initUI(self):
         # set window title
         self.parent.title("Projector Control")
-        
-        
+
+
         oddOuts = configparser.get('general', 'oddOuts')
 
         # init menubar
@@ -422,15 +423,15 @@ class Master(Frame):
         fileMenu = Menu(menubar)
         sceneMenu = Menu(fileMenu)
         projMenu = Menu(fileMenu)
-        
-        
+
+
         if oddOuts == "true":
             sceneMenu.add_command(label="Standard setup", command=self.standardInOutOdd)
         else:
             sceneMenu.add_command(label="Standard setup", command=self.standardInOut)
-            
+
         sceneMenu.add_command(label="Bowling Music to all", command=self.bmnToAll)
-        
+
         fileMenu.add_cascade(label="Scenes", underline = 0, menu=sceneMenu)
 
         projMenu.add_command(label="Turn on projectors", underline = 0, command=self.projectorsOn)
@@ -450,13 +451,13 @@ class Master(Frame):
         self.pack(fill=BOTH, expand=1)
         self.var = IntVar()
 
-        # pull number of inputs, number of bmns, 
+        # pull number of inputs, number of bmns,
         # and which input number the bmns start at for use in initUI
         logger.debug('==Read config file==')
         numIn = configparser.get('general', 'numberOfInputs')
         bmnStart = configparser.get('general', 'bowlingMusicNetworkInputNumber')
         bmnCount = configparser.get('general', 'numberOfBMN')
-        
+
         # Center window by getting screensize from Windows
         # dividing by 2, then subtracting windowsize/2
         screenWidth = int(GetSystemMetrics (0))
@@ -487,7 +488,7 @@ class Master(Frame):
                         logger.debug('Bowling Music ' + str(int(bmn) + int(bmnStart)))
                         next(inputIterable)
                 else:
-                    inputs.append(['DTV' + str(i - int(bmnCount)), str(i)]) 
+                    inputs.append(['DTV' + str(i - int(bmnCount)), str(i)])
         else:
             customInputs = str(configparser.get('general', 'customInputs'))
             inputNames = customInputs.split(',')
@@ -496,11 +497,11 @@ class Master(Frame):
 
         # take our list of inputs and make radio buttons for them,
         # storing the value in the variable "v" that we initialized earlier
-        
+
         logger.debug(inputs)
-        
+
         inputNums = []
-        
+
         if generateInputs != "True":
             inputNums = list(range(len(inputNames)))
             inputs = dict(zip(inputNames, inputNums))
@@ -514,7 +515,7 @@ class Master(Frame):
                 row = int(input) - 1
                 b = Radiobutton(self, text=text, variable=v, value=input)
                 b.grid(row=row, column=0, padx = 10, sticky=W)
-                
+
 
         # get number of outputs from var and create buttons for each
         # output, each corresponding to a specific projector. When clicked
