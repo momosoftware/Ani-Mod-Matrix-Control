@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <!-- app icons -->
+        <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+        <link rel="manifest" href="/static/manifest.json">
+        <link rel="mask-icon" href="/static/safari-pinned-tab.svg" color="#88032f">
+        <link rel="shortcut icon" href="/static/favicon.ico">
+        <meta name="msapplication-config" content="/static/browserconfig.xml">
+        <meta name="theme-color" content="#88032f">
+
+        <title>HDMI Switch Control</title>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" crossorigin="anonymous">
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" crossorigin="anonymous"></script>
+        <style>
+            /* i need to mvoe this out to an external file */
+            a, a:focus {
+                background: #cf0f4f;
+                box-shadow: 0px 8px #8a1038;
+                border: none;
+                display: inline-block;
+                border-radius:7px;
+                padding:3%;
+                padding:3%;
+                text-align:center;
+                text-decoration:none !important;
+                color: #fafafa !important;
+                font: 14px "Helvetica Neue", Helvetica, Arial, sans-serif;
+                position:relative;
+                top: 0;
+                transition: all .1s ease-in-out;
+                margin-bottom: 2%;
+                margin-right: 4%;
+                width:29%
+            }
+
+            a:hover {
+                background: #cf0f4f;
+                top:2px;
+                box-shadow: 0px 6px #8a1038;
+            }
+            a:active {
+                background: #8a1038;
+                box-shadow: 0px 0px #8a1038;
+                top:8px;
+                transition: all .1s ease-in-out;
+            }
+            @media (max-width: 991px) {
+                a, a:focus {
+                    margin-bottom: 4%;
+                    margin-right: 3%;
+                    width:47%
+                }
+                .power {}
+            }
+            @media (max-width: 575px) {
+                a, a:focus {
+                    margin-bottom: 4%;
+                    margin-right: 0%;
+                    width:100%
+                }
+                .power {}
+            }
+
+            .card {
+                background-color:transparent;
+                border:none; 
+            }
+            
+            .power a {
+                background:#9e0739;
+                box-shadow: 0px 8px #6b0829;
+                width:100%;
+                margin-bottom: 6%;
+            }
+            .power a:hover {
+                background:#9e0739;
+                box-shadow: 0px 6px #6b0829;
+            }
+            .power a:active {
+                background:#6b0829;
+                box-shadow: 0px 0px #6b0829;
+            }
+            .navbar{
+                background-color: #cf0f4f;
+                color: #fafafa;
+                box-shadow: 0px 4px #8a1038;
+            }
+            .navbar h1 {
+                font-size: 36px !important;
+                font-weight: 300 !important;
+                font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+            }
+        </style>
+    </head>
+
+    <body >
+        <nav class="navbar sticky-top">
+            <div class="container">
+                <h1 class="navbar-brand mb-0">Wonderwall</h1>
+            </div>
+        </nav>
+        <div class="container">
+            {% if message is defined %}
+            <div class="alert alert-danger" role="alert">
+                <strong>Uh oh!</strong> {{ message }}
+            </div>
+            {% endif %}
+            <br />
+            <div class="row">
+                <div class="col-md-9 card-deck">
+                    <a href="/scene/1">
+                        <div class="card card-inverse card-primary mb-3 text-center">
+                            <div class="card-block">
+                                <h3 class="card-title">Scene 1</h3>
+                                <p class="card-text">Set the matrix to scene 1</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="/scene/2">
+                        <div class="card card-inverse card-primary mb-3 text-center">
+                            <div class="card-block">
+                                <h3 class="card-title">Scene 2</h3>
+                                <p class="card-text">Set the matrix to scene 2</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="/scene/3">
+                        <div class="card card-inverse card-primary mb-3 text-center">
+                            <div class="card-block">
+                                <h3 class="card-title">Scene 3</h3>
+                                <p class="card-text">Set the matrix to scene 3</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="/scene/4">
+                        <div class="card card-inverse card-primary mb-3 text-center">
+                            <div class="card-block">
+                                <h3 class="card-title">Scene 4</h3>
+                                <p class="card-text">Set the matrix to scene 4</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="/scene/5">
+                        <div class="card card-inverse card-primary mb-3 text-center">
+                            <div class="card-block">
+                                <h3 class="card-title">Scene 5</h3>
+                                <p class="card-text">Set the matrix to scene 5</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3 power">
+                    <a href="/matrix/on">
+                        <div class="card card-inverse card-primary mb-3 text-center">
+                            <div class="card-block ">
+                                <h3 class="card-title">Power On</h3>
+                                <p class="card-text">Turn the matrix and projectors on.</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="/matrix/off">
+                        <div class="card card-inverse card-primary mb-3 text-center">
+                            <div class="card-block">
+                                <h3 class="card-title">Power Off</h3>
+                                <p class="card-text">Turn the matrix and projectors off.</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
