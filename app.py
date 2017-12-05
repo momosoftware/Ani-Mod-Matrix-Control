@@ -9,6 +9,8 @@ import time
 from flask import Flask, render_template, request, Response, Markup
 import idol
 import traceback
+import configparser
+import logging
 
 configparser = configparser.RawConfigParser()
 configFilePath = r'config.conf'
@@ -17,11 +19,24 @@ configparser.read(configFilePath)
 matrixCom = configparser.get('general', 'matrixCom')
 matrixType = configparser.get('general', 'matrixType')
 musicSource = configparser.get('general', 'musicSource')
-dtvSource = configparser.get('general', 'musicSource')
+dtvSources = configparser.get('general', 'dtvSources').split(",")
 numberOfTargets = configparser.get('general', 'numberOfTargets')
 
+# create logger
+logger = logging.getLogger("logging")
+logger.setLevel(logging.DEBUG)
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+# create formatter
+formatter = logging.Formatter("[%(asctime)s] - %(message)s")
+# add formatter to ch
+ch.setFormatter(formatter)
+# add ch to logger
+logger.addHandler(ch)
+
 app = Flask(__name__)
-miku = idol.idol(matrixCom,matrixType,musicSource,dtvSource)
+miku = idol.idol(matrixCom,matrixType,musicSource,dtvSources,numberOfTargets)
 templateData = {'oi' : 'wassup'}
 
 @app.route('/')
@@ -33,11 +48,11 @@ def main():
 @app.route('/scene/<number>')
 def scene(number):
 
-    scenes = {'1' : miku.sceneOne,
-           '2' : miku.sceneTwo,
-           '3' : miku.sceneThree,
-           '4' : miku.sceneFour,
-           '5' : miku.sceneFive
+    scenes = {'1' : miku.standardScene,
+           '2' : miku.standardScene,
+           '3' : miku.standardScene,
+           '4' : miku.standardScene,
+           '5' : miku.standardScene
     }
     
     try:
