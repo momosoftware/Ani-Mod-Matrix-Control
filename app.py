@@ -21,6 +21,7 @@ matrixType = configparser.get('general', 'matrixType')
 musicSource = configparser.get('general', 'musicSource')
 dtvSources = configparser.get('general', 'dtvSources').split(",")
 numberOfTargets = configparser.get('general', 'numberOfTargets')
+projectorLayout = configparser.get('general', 'projectorLayout') # "twos" or "threes"
 
 # create logger
 logger = logging.getLogger("logging")
@@ -47,13 +48,20 @@ def main():
 
 @app.route('/scene/<number>')
 def scene(number):
-
-    scenes = {'1' : miku.standardScene,
-           '2' : miku.standardScene,
-           '3' : miku.standardScene,
-           '4' : miku.standardScene,
-           '5' : miku.standardScene
-    }
+    if projectorLayout == "threes":
+        scenes = {'1' : miku.standardSceneThrees,
+               '2' : miku.standardSceneThrees,
+               '3' : miku.standardSceneThrees,
+               '4' : miku.standardSceneThrees,
+               '5' : miku.standardSceneThrees
+        }
+    else:
+        scenes = {'1' : miku.standardScene,
+               '2' : miku.standardScene,
+               '3' : miku.standardScene,
+               '4' : miku.standardScene,
+               '5' : miku.standardScene
+        }
     
     try:
         #call our scene from the dict depending on number passed in url

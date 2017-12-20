@@ -159,8 +159,8 @@ class idol:
         dtvOutCommands = self._buildMultiSourceCommand(dtvSources, dtvTargets)
         logger.debug("Music commands: " + str(musicOutCommands))
         logger.debug("dtv commands: " + str(dtvOutCommands))
-        #_sendSerial(self.matrixCom,musicOutCommands)
-        #_sendSerial(self.matrixCom,dtvOutCommands)
+        #self._sendSerial(self.matrixCom,musicOutCommands)
+        #self._sendSerial(self.matrixCom,dtvOutCommands)
 
 
         
@@ -190,10 +190,10 @@ class idol:
             
         musicTargets = []
         dtvTargets = []
-        for target in targets:
+        for target in range(numberOfTargets):
             musicTargets.append(target+1)
         
-        for target in targets[1::3]:
+        for target in range(numberOfTargets)[1::3]:
             dtvTargets.append(target+1)
             
         musicOutCommands = self._buildSingleSourceCommand(self.musicSource, musicTargets)
@@ -201,5 +201,5 @@ class idol:
         dtvOutCommands = self._buildMultiSourceCommand(dtvSources, dtvTargets)
         logger.debug("Music commands: " + str(musicOutCommands))
         logger.debug("dtv commands: " + str(dtvOutCommands))
-        _sendSerial(self.matrixCom,musicOutCommands)
-        _sendSerial(self.matrixCom,dtvOutCommands)
+        #self._sendSerial(self.matrixCom,musicOutCommands)
+        #self._sendSerial(self.matrixCom,dtvOutCommands)
