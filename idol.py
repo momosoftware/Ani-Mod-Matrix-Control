@@ -2,13 +2,12 @@
 #title          : idol.py
 #description    : Management interface for the Ani-Mod video matrix, Casio Projectors
 #author         : Jesse "acostoss" Hamilton
-#date           : 2014-09-24
-#version        : 1.5.2
-#usage          : python setup.py py2exe
+#date           : 2018-01-31
+#version        : 2.0.1
+#usage          : python app.py
 #notes          : Tested in Windows 7 Pro and 8.1 Pro, should work wherever python works
-#todo           : add program status bar to bottom of window
-#               : add directv
-#pythonVersion  : 3.4.3
+#todo           : see above class definition
+#pythonVersion  : 3.6.1
 #===============================================================================
 
 # Idol projection software
@@ -23,9 +22,6 @@ import urllib.request, urllib.parse, urllib.error
 import random
 #from DirectPy import DIRECTV
 
-
-# make vars
-# comNum, bmnNum, numOut, com, v, COMPortNumber, BowlingMusicNetworkInputNumber, screenWidth, screenHeight
 
 # load our config and prepare to read the file
 configparser = configparser.RawConfigParser()
@@ -52,14 +48,8 @@ logger.addHandler(ch)
 
 logger.debug('====ProgramStart====')
 
-# commandBuilder
-
-# getAllOutputStatus
-# getSingleOutputStatus
+# TODO
 # musicToAll
-# standardScene
-# standardSceneThrees
-# customScene
 # projectorsOn
 
 class idol:
@@ -95,7 +85,6 @@ class idol:
     
     def _buildMultiSourceCommand(self,sources,targets):
         commandList = []
-        #['1B1.', '7B2.', '1B3.', '1B4.', '7B5.', '1B6.', '1B7.', '7B8.', '1B9.']
         for target in targets:
             index = targets.index(target)
             if self.matrixType == "animod":
@@ -106,7 +95,7 @@ class idol:
             commandList.append(command)
         
         return commandList
-        
+
     
     def _sendSerial(self,com,commands):
         for command in commands:
@@ -115,14 +104,7 @@ class idol:
             except serial.SerialException as ex:
                 logger.error('Port ' + str(comNum-1) + ' is unavailable: ' + ex)
     
-        # NEEDS WORK
-        # NEEDS WORK
-        # NEEDS WORK
-        # NEEDS WORK
-        # NEEDS WORK
-        # NEEDS WORK
-        # NEEDS WORK
-        # NEEDS WORK
+
     def standardScene(self):
         dtvSources = self.dtvSources
         dtvSourcesStatic = self.dtvSources
@@ -159,17 +141,13 @@ class idol:
         dtvOutCommands = self._buildMultiSourceCommand(dtvSources, dtvTargets)
         logger.debug("Music commands: " + str(musicOutCommands))
         logger.debug("dtv commands: " + str(dtvOutCommands))
-        #self._sendSerial(self.matrixCom,musicOutCommands)
-        #self._sendSerial(self.matrixCom,dtvOutCommands)
+#        self._sendSerial(self.matrixCom,musicOutCommands)
+#        self._sendSerial(self.matrixCom,dtvOutCommands)
 
 
         
         
     def standardSceneThrees(self):
-        # l = [1,2,3,4,5,6,7,8,9]
-        # for i in l[1::3]:
-        #     print(i)
-        # >>> 2,5,8
         dtvSources = self.dtvSources
         dtvSourcesStatic = self.dtvSources
         numberOfDTVSources = int(len(dtvSources))
@@ -201,5 +179,33 @@ class idol:
         dtvOutCommands = self._buildMultiSourceCommand(dtvSources, dtvTargets)
         logger.debug("Music commands: " + str(musicOutCommands))
         logger.debug("dtv commands: " + str(dtvOutCommands))
-        #self._sendSerial(self.matrixCom,musicOutCommands)
-        #self._sendSerial(self.matrixCom,dtvOutCommands)
+#        self._sendSerial(self.matrixCom,musicOutCommands)
+#        self._sendSerial(self.matrixCom,dtvOutCommands)
+        
+    def singleSourceScene(self,source):
+        targets = []
+        numberOfTargets = int(self.numberOfTargets)
+        for target in range(numberOfTargets):
+            # our current target ID is the number of the actual button that would be pressed on the matrix, which will be one more than our target value, as the range counts from zero and the physical matrix counts from 1
+            currentTargetID = target + 1
+            targets.append(currentTargetID)
+        command = self._buildSingleSourceCommand(source, targets)
+        logger.debug(command)
+        #self._sendSerial(self.matrixCom, command)   
+    
+    # will replace this with singleSourceScene once i rewrite the dict-based case-switch statement into a n if elseif else statement
+    def musicAllScene(self):
+        targets = []
+        numberOfTargets = int(self.numberOfTargets)
+        for target in range(numberOfTargets):
+            # our current target ID is the number of the actual button that would be pressed on the matrix, which will be one more than our target value, as the range counts from zero and the physical matrix counts from 1
+            currentTargetID = target + 1
+            targets.append(currentTargetID)
+        command = self._buildSingleSourceCommand(self.musicSource, targets)
+        logger.debug(command)
+        #self._sendSerial(self.matrixCom, command)
+
+    def customScene(self, source, target):
+        musicOutCommand = self._buildSingleSourceCommand(source, target)
+        logger.debug("Music command: " + str(musicOutCommand))
+        self._sendSerial(self.matrixCom, musicOutCommand)

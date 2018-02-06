@@ -17,8 +17,9 @@
         <title>Idol - Projector Control</title>
         <!-- Latest compiled and minified CSS -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" crossorigin="anonymous">
-        <!-- Latest compiled and minified JavaScript -->
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" crossorigin="anonymous"></script>
+        
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.bundle.min.js" integrity="sha384-3ziFidFTgxJXHMDttyPJKDuTlmxJlwbSkojudK/CkRqKDOmeSbN6KLrGdrBQnT2n" crossorigin="anonymous"></script>
         <style>
             /* i need to mvoe this out to an external file */
             a, a:focus {
@@ -27,7 +28,6 @@
                 border: none;
                 display: inline-block;
                 border-radius:7px;
-                padding:3%;
                 padding:3%;
                 text-align:center;
                 text-decoration:none !important;
@@ -40,7 +40,11 @@
                 margin-right: 4%;
                 width:29%
             }
-
+            .singles a {
+                margin-right: 1%;
+                width: 23%;
+                padding:1%;
+            }
             a:hover {
                 background: #2ABB9B;
                 top:2px;
@@ -101,7 +105,7 @@
         </style>
     </head>
 
-    <body >
+    <body id="body">
         <nav class="navbar sticky-top">
             <div class="container">
                 <h1 class="navbar-brand mb-0">Idol - Projector Control</h1>
@@ -114,13 +118,15 @@
             </div>
             {% endif %}
             <br />
+            <h1 class="display-4">Scene Slection</h1>
+            <br />
             <div class="row">
-                <div class="col-md-9 card-deck">
+                <div class="col-md-12 card-deck">
                     <a href="/scene/1">
                         <div class="card card-inverse card-primary mb-3 text-center">
                             <div class="card-block">
                                 <h3 class="card-title">Scene 1</h3>
-                                <p class="card-text">Set the matrix to scene 1</p>
+                                <p class="card-text">Standard setup for centers with 4 projectors per 8 lanes, every other screen is music or DTV</p>
                             </div>
                         </div>
                     </a>
@@ -128,7 +134,7 @@
                         <div class="card card-inverse card-primary mb-3 text-center">
                             <div class="card-block">
                                 <h3 class="card-title">Scene 2</h3>
-                                <p class="card-text">Set the matrix to scene 2</p>
+                                <p class="card-text">Standard setup for locations with 3 projectors per 8 lanes, showing Music:DTV:Music for each group</p>
                             </div>
                         </div>
                     </a>
@@ -157,6 +163,7 @@
                         </div>
                     </a>
                 </div>
+<!--
                 <div class="col-md-3 power">
                     <a href="/matrix/on">
                         <div class="card card-inverse card-primary mb-3 text-center">
@@ -175,7 +182,92 @@
                         </div>
                     </a>
                 </div>
+-->
+            </div>
+            <br />
+            <br />
+            <br />
+            <br />
+            <h2 class="display-4">Single-Projector Setting</h2>
+            <br />
+            <div class="row">
+                <div class="col-md-12 card-deck singles">
+                    {%for target in range(numberOfTargets)%}
+                    <a onclick="genCustomSceneModal('{{target}}');">
+                        <div class="card card-inverse card-primary mb-3 text-center">
+                            <div class="card-block">
+                                <h3 class="card-title">Projector {{target + 1}}</h3>
+                                <p class="card-text">Change the current output on projector {{target + 1}}</p>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
             </div>
         </div>
+        <script type="text/javascript">
+            function genCustomSceneModal(target){
+                var sourceOpts = [];
+                {%for source in range(numberOfSources) %}
+                var sourceOpt{{source}} = ['{{source}}', '{{sourceNames[source]}}', '/customScene/{{source}}/'];
+                {% endfor %}
+                sourceOpts = [];
+                {%for source in range(numberOfSources) %}
+                sourceOpts.push(sourceOpt{{source}}) 
+                {% endfor %}
+                var defaults = {
+                    placementId:'body',                 // what dom element (by id) do we wanna insert the modal in to
+                    heading:'Modal',                    //what should the heading be for the modal
+                    mainContent:'content',              //
+                    closeBtnText:'Close',               // What should the close button say
+                    submitBtnText:'Submit',             // What should the submit button say
+                    modaltype:'basic',                  // what type of modal should it be (basic/iframe/login/optionset)
+                    extraContent:'pssst',                 // the ID that we want our auth input to be,
+                    frameSource:'https://google.com'    // the page to show in the iframe
+                };
+                 var context = []
+                context = $.extend(defaults, context);
+
+                optionSetArray = sourceOpts;
+
+                context.mainContent = '<div class="card-group">'
+                 
+                optionSetArray.forEach(function(curOpt, index, initial_array) {
+                    context.mainContent += '<a href="' + curOpt[2] + target +'"> <div class="card"  style="cursor:pointer;">'
+                    context.mainContent += '<div class="card-block">'
+                    context.mainContent += '<h4 class="card-title">' + curOpt[1] + '</h4>'
+                    context.mainContent += '<p class="card-text">' + curOpt[1] + '</p>'
+                    context.mainContent += '</div>' //card-block
+                    context.mainContent += '</div></a>' //card
+                    console.log('ID: ' + curOpt[0]);
+                    console.log('Title: ' + curOpt[1]);
+                    console.log('Link: ' + curOpt[2]);
+                    console.log('')
+                });
+
+                context.mainContent += '</div>' // card-group
+                var html =  '<div id="dynamicModal" class="modal fade">';
+                html += '<div class="modal-dialog modal-lg" role="document">';
+                html += '<div class="modal-content">';
+                html += '<div class="modal-header">';
+                html += '<button type="button" class="close" data-dismiss="modal" aria-label="Close">';
+                html += '<span aria-hidden="true">&times;</span>';
+                html += '</button>';
+                html += '<h4>'+context.heading+'</h4>';
+                html += '</div>'; //modalHeader
+                html += '<div class="modal-body">';
+                html += '<p>' + context.mainContent + '</p>';
+                html += '<div class="modal-footer">';
+                html += '<button type="button" class="btn btn-secondary" data-dismiss="modal">' + context.closeBtnText + '</button>'; // close button
+                html += '</div>';  // footer
+                html += '</div>';  // modal-body
+                html += '</div>';  // modalWindow
+                html += '</div>';  // modal-content
+                html += '</div>';  // modal-dialog
+                $("#"+context.placementId).append(html);
+                 console.log('fuck')
+                $("#dynamicModal").modal('show');
+            }
+        </script>
     </body>
 </html>

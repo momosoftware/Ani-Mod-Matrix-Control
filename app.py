@@ -1,5 +1,5 @@
-# haidomo, virtual youtuber kizuna ai desu!
-# or i guess miku is a better projected idol huh
+# 杯ども、それはかすかな目です！！！
+# or i guess miku is a better projected idol than kizuna ai huh
 
 
 #!/usr/bin/python
@@ -20,6 +20,7 @@ matrixCom = configparser.get('general', 'matrixCom')
 matrixType = configparser.get('general', 'matrixType')
 musicSource = configparser.get('general', 'musicSource')
 dtvSources = configparser.get('general', 'dtvSources').split(",")
+sourceNames = configparser.get('general', 'sourceNames').split(",")
 numberOfTargets = configparser.get('general', 'numberOfTargets')
 projectorLayout = configparser.get('general', 'projectorLayout') # "twos" or "threes"
 
@@ -38,7 +39,7 @@ logger.addHandler(ch)
 
 app = Flask(__name__)
 miku = idol.idol(matrixCom,matrixType,musicSource,dtvSources,numberOfTargets)
-templateData = {'oi' : 'wassup'}
+templateData = {'oi' : 'wassup', 'numberOfTargets' : int(numberOfTargets), 'numberOfSources' : len(dtvSources) + 1, 'dtvSources' : dtvSources, 'sourceNames' : sourceNames}
 
 @app.route('/')
 def main():
@@ -48,27 +49,56 @@ def main():
 
 @app.route('/scene/<number>')
 def scene(number):
+    #i need to turn this into an if ifelse else statement
     if projectorLayout == "threes":
-        scenes = {'1' : miku.standardSceneThrees,
-               '2' : miku.standardSceneThrees,
-               '3' : miku.standardSceneThrees,
-               '4' : miku.standardSceneThrees,
-               '5' : miku.standardSceneThrees
-        }
-    else:
-        scenes = {'1' : miku.standardScene,
-               '2' : miku.standardScene,
-               '3' : miku.standardScene,
-               '4' : miku.standardScene,
-               '5' : miku.standardScene
-        }
+        if number == '1':
+            miku.standardScene()
+        elif number == '2':
+            miku.standardSceneThrees()
+        elif number == '3':
+            miku.musicAllScene()
+        elif number == '4':
+            miku.singleSourceScene(int(musicSource))
+        elif number == '5':
+            miku.standardSceneThrees()
+        else:
+            templateData['message'] = "That's not a valid scene, please try 1-5"
+            traceback.print_exc()
+    elif projectorLayout == "twos":
+        if number == '1':
+            miku.standardScene()
+        elif number == '2':
+            miku.standardSceneThrees()
+        elif number == '3':
+            miku.musicAllScene()
+        elif number == '4':
+            miku.singleSourceScene(int(musicSource))
+        elif number == '5':
+            miku.standardSceneThrees()
+        else:
+            templateData['message'] = "That's not a valid scene, please try 1-5"
+            traceback.print_exc()
+#    
+#    scenes = {'1' : miku.standardScene,
+#               '2' : miku.standardSceneThrees,
+#               '3' : miku.musicAllScene,
+#               '4' : miku.standardSceneThrees,
+#               '5' : miku.standardSceneThrees
+#        }
+#    else:
+#        scenes = {'1' : miku.standardScene,
+#               '2' : miku.standardScene,
+#               '3' : miku.standardScene,
+#               '4' : miku.standardScene,
+#               '5' : miku.standardScene
+#        }
     
-    try:
-        #call our scene from the dict depending on number passed in url
-        scenes[number]()  
-    except AttributeError:
-        templateData['message'] = "That's not a valid scene, please try 1-5"
-        traceback.print_exc()
+#    try:
+#        #call our scene from the dict depending on number passed in url
+#        scenes[number]()  
+#    except AttributeError:
+#        templateData['message'] = "That's not a valid scene, please try 1-5"
+#        traceback.print_exc()
 
     return render_template('index.html', **templateData)
 
@@ -84,5 +114,16 @@ def matrix(control):
     
     return render_template('index.html', **templateData)
 
+@app.route('/customScene/<source>/<target>')
+def customScene(source, target):
+    print('Source is: ' + str(source))
+    print('Target is: ' + str(target))
+    miku.customScene(source,target)
+    
+    templateData['message'] = "Sent source " + str(source) + " to target " + str(target)
+    
+    return render_template('index.html', **templateData)
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.jinja_env.auto_reload = True
+    app.run(debug=True, host='0.0.0.0')
