@@ -21,8 +21,11 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.bundle.min.js" integrity="sha384-3ziFidFTgxJXHMDttyPJKDuTlmxJlwbSkojudK/CkRqKDOmeSbN6KLrGdrBQnT2n" crossorigin="anonymous"></script>
         <style>
+            body {
+                min-height:1200px;
+            }
             /* i need to mvoe this out to an external file */
-            a, a:focus {
+            .cardanchor, .cardanchor:focus {
                 background: #2ABB9B;
                 box-shadow: 0px 8px #2b9b82;
                 border: none;
@@ -40,24 +43,25 @@
                 margin-right: 4%;
                 width:29%
             }
-            .singles a {
+            .singles .cardanchor {
                 margin-right: 1%;
                 width: 23%;
                 padding:1%;
             }
-            a:hover {
+
+            .cardanchor:hover {
                 background: #2ABB9B;
                 top:2px;
                 box-shadow: 0px 6px #2b9b82;
             }
-            a:active {
+            .cardanchor:active{
                 background: #2b9b82;
                 box-shadow: 0px 0px #2b9b82;
                 top:8px;
                 transition: all .1s ease-in-out;
             }
             @media (max-width: 991px) {
-                a, a:focus {
+                .cardanchor, .cardanchor:focus{
                     margin-bottom: 4%;
                     margin-right: 3%;
                     width:47%
@@ -65,7 +69,7 @@
                 .power {}
             }
             @media (max-width: 575px) {
-                a, a:focus {
+                .cardanchor, .cardanchor:focus {
                     margin-bottom: 4%;
                     margin-right: 0%;
                     width:100%
@@ -76,6 +80,49 @@
             .card {
                 background-color:transparent;
                 border:none; 
+            }
+            
+            .btn {
+                background: #2ABB9B;
+                box-shadow: 0px 8px #2b9b82;
+                border: none;
+                display: inline-block;
+                border-radius:7px;
+                padding:1.5%;
+                text-align:center;
+                text-decoration:none !important;
+                color: #fafafa !important;
+                font: 14px "Helvetica Neue", Helvetica, Arial, sans-serif;
+                position:relative;
+                top: 0;
+                transition: all .1s ease-in-out;
+                margin-bottom: 0%;
+                margin-right: 4%;
+                width: 95%;
+            }
+            
+            .btn:not(.collapsed) {
+                background: #2b9b82;
+                box-shadow: 0px 0px #2b9b82;
+                top:8px;
+                transition: all .1s ease-in-out;
+            }
+            
+            .btn.collapsed:hover{
+                background: #2ABB9B;
+                top:2px;
+                box-shadow: 0px 6px #2b9b82;
+            }
+            
+            .btn.collapsed {
+                background: #2ABB9B;
+                box-shadow: 0px 8px #2b9b82;
+                top: 0;
+                transition: all .1s ease-in-out;
+            }
+            
+            .singles {
+                margin-top: 4%;
             }
             
             .power a {
@@ -112,9 +159,14 @@
             </div>
         </nav>
         <div class="container">
-            {% if message is defined %}
+            {% if errorMessage is defined %}
             <div class="alert alert-danger" role="alert">
                 <strong>Uh oh!</strong> {{ message }}
+            </div>
+            {% endif %}
+            {% if message is defined %}
+            <div class="alert alert-success" role="alert">
+                <strong>Great!</strong> {{ message }}
             </div>
             {% endif %}
             <br />
@@ -122,7 +174,7 @@
             <br />
             <div class="row">
                 <div class="col-md-12 card-deck">
-                    <a href="/scene/1">
+                    <a class="cardanchor" href="/scene/1">
                         <div class="card card-inverse card-primary mb-3 text-center">
                             <div class="card-block">
                                 <h3 class="card-title">Scene 1</h3>
@@ -130,7 +182,7 @@
                             </div>
                         </div>
                     </a>
-                    <a href="/scene/2">
+                    <a class="cardanchor" href="/scene/2">
                         <div class="card card-inverse card-primary mb-3 text-center">
                             <div class="card-block">
                                 <h3 class="card-title">Scene 2</h3>
@@ -138,7 +190,7 @@
                             </div>
                         </div>
                     </a>
-                    <a href="/scene/3">
+                    <a class="cardanchor" href="/scene/3">
                         <div class="card card-inverse card-primary mb-3 text-center">
                             <div class="card-block">
                                 <h3 class="card-title">Scene 3</h3>
@@ -146,7 +198,7 @@
                             </div>
                         </div>
                     </a>
-                    <a href="/scene/4">
+                    <a class="cardanchor" href="/scene/4">
                         <div class="card card-inverse card-primary mb-3 text-center">
                             <div class="card-block">
                                 <h3 class="card-title">Scene 4</h3>
@@ -154,7 +206,7 @@
                             </div>
                         </div>
                     </a>
-                    <a href="/scene/5">
+                    <a class="cardanchor" href="/scene/5">
                         <div class="card card-inverse card-primary mb-3 text-center">
                             <div class="card-block">
                                 <h3 class="card-title">Scene 5</h3>
@@ -188,20 +240,52 @@
             <br />
             <br />
             <br />
-            <h2 class="display-4">Single-Projector Setting</h2>
+            <h2 class="display-4">Single-Target Scene Selection</h2>
             <br />
+            <a class="btn btn-primary collapsed" data-toggle="collapse" href="#singleProjList" role="button" aria-expanded="false" aria-controls="collapseExample">
+                Expand
+            </a>
+
             <div class="row">
-                <div class="col-md-12 card-deck singles">
-                    {%for target in range(numberOfTargets)%}
-                    <a onclick="genCustomSceneModal('{{target}}');">
-                        <div class="card card-inverse card-primary mb-3 text-center">
-                            <div class="card-block">
-                                <h3 class="card-title">Projector {{target + 1}}</h3>
-                                <p class="card-text">Change the current output on projector {{target + 1}}</p>
+                <div class="collapse" id="singleProjList">
+                    <div class="col-md-12 card-deck singles">
+                        {%for target in range(numberOfTargets)%}
+                        <a class="cardanchor" onclick="genCustomSceneModal('{{target}}');">
+                            <div class="card card-inverse card-primary mb-3 text-center">
+                                <div class="card-block">
+                                    <h3 class="card-title">Projector {{target + 1}}</h3>
+                                    <p class="card-text">Change the current output on projector {{target + 1}}</p>
+                                </div>
                             </div>
-                        </div>
-                    </a>
-                    {% endfor %}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <br />
+            <br />
+            <br />
+            <br />
+            <h2 class="display-4">All-Target Source Selection</h2>
+            <br />
+            <a class="btn btn-primary collapsed" data-toggle="collapse" href="#singleSourceList" role="button" aria-expanded="false" aria-controls="collapseExample">
+                Expand
+            </a>
+
+            <div class="row">
+                <div class="collapse" id="singleSourceList">
+                    <div class="col-md-12 card-deck singles">
+                        {%for source in range(numberOfSources) %}
+                        <a class="cardanchor" href="/singleSourceAll/{{source}}">
+                            <div class="card card-inverse card-primary mb-3 text-center">
+                                <div class="card-block">
+                                    <h3 class="card-title">{{sourceNames[source]}}</h3>
+                                    <p class="card-text">Set all targets to {{sourceNames[source]}}</p>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>

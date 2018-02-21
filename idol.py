@@ -208,4 +208,54 @@ class idol:
     def customScene(self, source, target):
         musicOutCommand = self._buildSingleSourceCommand(source, target)
         logger.debug("Music command: " + str(musicOutCommand))
-        self._sendSerial(self.matrixCom, musicOutCommand)
+        #self._sendSerial(self.matrixCom, musicOutCommand)
+
+    # ########################
+    # Projectors On
+    # ########################
+    # Turns all projectors n the house on. Does so
+    # through use of HTTP POST, lifted straight from the
+    # projector's web portal. Doesn't require any sort
+    # of authentication to hit the POST taget, despite needing
+    # auth to access the page which send the POST if accessing
+    # via web browser.
+    #
+    # TODO:
+    # - starting with a projStartingIP, take numOfProj variable amount
+    #   iterate through a for loop and turn all projectors on.
+    # - Do something similar to turn them off.
+    # - Another function for turning on/off a single projector
+    # - one for status
+    # - oh and properly comment the function
+    # ########################
+    def allTargetsCommand(self,command):
+        logger.debug("Turning on projectors")
+        targetSubnet = configparser.get('general', 'targetSubnet')
+        targetHost = configparser.get('general', 'targetStartingHost')
+        currentHost = int(targetHost)
+        if command == "on":
+            targetCommand = "command=24003100    0f0001010003010001"
+        elif comand == "off":
+            targetCommand = "command=24003100    0f0001010003010002"
+        else:
+            targetCommand = "command=24003100    0e00023100000000"
+        
+        for i in range(int(self.numberOfTargets)):
+            currentIP = "192.168." + str(targetSubnet) + "." + str(currentHost)
+            logger.debug("URL: " + currentP)
+            params = urllib.parse.urlencode({'@number': 12524, '@type': 'issue', '@action': 'show'})
+            headers = {"Content-Type": "application/x-www-form-urlencoded", "Cache-Control": "no-cache"}
+            logger.debug(headers)
+            currentCON = http.client.HTTPConnection(currentIP)
+            currentCON.request("POST", "/tgi/return.tgi?sid=" + str(random.random()), targetCommand, headers)
+            currentRESP = currentCON.getresponse()
+            logger.debug("Status:")
+            logger.debug(currentRESP.status)
+            logger.debug("Reason:")
+            logger.debug(currentRESP.reason)
+            data = currentRESP.read()
+            logger.debug("Data:")
+            logger.debug(data)
+            currentCON.close()
+            
+            currentHost = currentHost + 1

@@ -44,6 +44,11 @@ templateData = {'oi' : 'wassup', 'numberOfTargets' : int(numberOfTargets), 'numb
 @app.route('/')
 def main():
     # Pass the template data into the template index.html and return it to the user
+    try:
+        del templateData['message']
+    except:
+        pass
+    
     return render_template('index.html', **templateData)
 
 
@@ -53,16 +58,21 @@ def scene(number):
     if projectorLayout == "threes":
         if number == '1':
             miku.standardScene()
+            templateData['message'] = "Ran standard scene for twos"
         elif number == '2':
             miku.standardSceneThrees()
+            templateData['message'] = "Ran standard scene for threes"
         elif number == '3':
             miku.musicAllScene()
+            templateData['message'] = "Ran the music all scene"
         elif number == '4':
             miku.singleSourceScene(int(musicSource))
+            templateData['message'] = "Ran the single source scene with music source"
         elif number == '5':
             miku.standardSceneThrees()
+            templateData['message'] = "Ran scene 5, standard scene threes"
         else:
-            templateData['message'] = "That's not a valid scene, please try 1-5"
+            templateData['errorMessage'] = "That's not a valid scene, please try 1-5"
             traceback.print_exc()
     elif projectorLayout == "twos":
         if number == '1':
@@ -76,7 +86,7 @@ def scene(number):
         elif number == '5':
             miku.standardSceneThrees()
         else:
-            templateData['message'] = "That's not a valid scene, please try 1-5"
+            templateData['errorMessage'] = "That's not a valid scene, please try 1-5"
             traceback.print_exc()
 #    
 #    scenes = {'1' : miku.standardScene,
@@ -110,7 +120,7 @@ def matrix(control):
     elif control == "off":
         miku.poweroff()
     else:
-        templateData['message'] = "That's not a valid control, please try on or off"
+        templateData['errorMessage'] = "That's not a valid control, please try on or off"
     
     return render_template('index.html', **templateData)
 
@@ -120,10 +130,24 @@ def customScene(source, target):
     print('Target is: ' + str(target))
     miku.customScene(source,target)
     
-    templateData['message'] = "Sent source " + str(source) + " to target " + str(target)
+    templateData['message'] = "Sent source #" + str(int(source) + 1) + " to target #" + str(int(target) + 1)
+    
+    return render_template('index.html', **templateData)
+    
+@app.route('/singleSourceAll/<source>')
+def singleSourceAll(source):
+    print('Source is: ' + str(source))
+    miku.singleSourceScene(int(source))
+    
+    templateData['message'] = "Sent " + sourceNames[int(source)] + " to all targets"
     
     return render_template('index.html', **templateData)
 
+@app.route('/aidoru/')
+def aidoru():
+    templateData['message'] = ""
+    return render_template('aidoru.html', **templateData)
+    
 if __name__ == '__main__':
     app.jinja_env.auto_reload = True
     app.run(debug=True, host='0.0.0.0')
