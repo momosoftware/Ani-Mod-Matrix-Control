@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+        <title>Idol - Projector Control - Aidoru Aidoru</title><!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" crossorigin="anonymous">
+        
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.bundle.min.js" integrity="sha384-3ziFidFTgxJXHMDttyPJKDuTlmxJlwbSkojudK/CkRqKDOmeSbN6KLrGdrBQnT2n" crossorigin="anonymous"></script>
+        <style>
+            /* i need to mvoe this out to an external file */
+            .cardanchor, .cardanchor:focus {
+                background: #2ABB9B;
+                box-shadow: 0px 8px #2b9b82;
+                border: none;
+                display: inline-block;
+                border-radius:7px;
+                padding:3%;
+                text-align:center;
+                text-decoration:none !important;
+                color: #fafafa !important;
+                font: 14px "Helvetica Neue", Helvetica, Arial, sans-serif;
+                position:relative;
+                top: 0;
+                transition: all .1s ease-in-out;
+                margin-bottom: 2%;
+                margin-right: 4%;
+                width:29%
+            }
+            .singles .cardanchor {
+                margin-right: 1%;
+                width: 23%;
+                padding:1%;
+            }
+
+            .cardanchor:hover {
+                background: #2ABB9B;
+                top:2px;
+                box-shadow: 0px 6px #2b9b82;
+            }
+            .cardanchor:active{
+                background: #2b9b82;
+                box-shadow: 0px 0px #2b9b82;
+                top:8px;
+                transition: all .1s ease-in-out;
+            }
+            @media (max-width: 991px) {
+                .cardanchor, .cardanchor:focus{
+                    margin-bottom: 4%;
+                    margin-right: 3%;
+                    width:47%
+                }
+                .power {}
+            }
+            @media (max-width: 575px) {
+                .cardanchor, .cardanchor:focus {
+                    margin-bottom: 4%;
+                    margin-right: 0%;
+                    width:100%
+                }
+                .power {}
+            }
+
+            .card {
+                background-color:transparent;
+                border:none; 
+            }
+            
+            .btn {
+                background: #2ABB9B;
+                box-shadow: 0px 8px #2b9b82;
+                border: none;
+                display: inline-block;
+                border-radius:7px;
+                padding:1.5%;
+                text-align:center;
+                text-decoration:none !important;
+                color: #fafafa !important;
+                font: 14px "Helvetica Neue", Helvetica, Arial, sans-serif;
+                position:relative;
+                top: 0;
+                transition: all .1s ease-in-out;
+                margin-bottom: 0%;
+                margin-right: 0%;
+                width: 100%;
+            }
+            
+            .btn:not(.collapsed) {
+                background: #2b9b82;
+                box-shadow: 0px 0px #2b9b82;
+                top:8px;
+                transition: all .1s ease-in-out;
+            }
+            
+            .btn.collapsed:hover{
+                background: #2ABB9B;
+                top:2px;
+                box-shadow: 0px 6px #2b9b82;
+            }
+            
+            .btn.collapsed {
+                background: #2ABB9B;
+                box-shadow: 0px 8px #2b9b82;
+                top: 0;
+                transition: all .1s ease-in-out;
+            }
+            
+            .singles {
+                margin-top: 4%;
+            }
+            
+            .power a {
+                background:#20977d;
+                box-shadow: 0px 8px #227c68;
+                width:100%;
+                margin-bottom: 6%;
+            }
+            .power a:hover {
+                background:#20977d;
+                box-shadow: 0px 6px #227c68;
+            }
+            .power a:active {
+                background:#227c68;
+                box-shadow: 0px 0px #227c68;
+            }
+            .navbar{
+                background-color: #2ABB9B;
+                color: #fafafa;
+                box-shadow: 0px 4px #2b9b82;
+            }
+            .navbar h1 {
+                font-size: 36px !important;
+                font-weight: 300 !important;
+                font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+            }
+            .vidcontainer {
+                position: relative;
+                width: 60%;
+                height: 0;
+                padding-bottom: 34.25%;
+                margin: 0 auto;
+            }
+            .video {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+    </head>
+    <body id="body">
+        <nav class="navbar sticky-top">
+            <div class="container">
+                <h1 class="navbar-brand mb-0">Idol - Projector Control</h1>
+            </div>
+        </nav>
+        <div class="vidcontainer">
+            <iframe src="https://www.youtube.com/embed/pEaBqiLeCu0?rel=0&amp;controls=0&amp;showinfo=0;autoplay=1" frameborder="0" allow="autoplay; encrypted-media" autoplay allowfullscreen class="video"></iframe>
+        </div>
+        <br />
+        <a class="btn btn-primary" href="/">Back</a>
+    </body>
+</html>
