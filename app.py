@@ -39,7 +39,7 @@ logger.addHandler(ch)
 
 app = Flask(__name__)
 miku = idol.idol(matrixCom,matrixType,musicSource,dtvSources,numberOfTargets)
-templateData = {'oi' : 'wassup', 'numberOfTargets' : int(numberOfTargets), 'numberOfSources' : len(dtvSources) + 1, 'dtvSources' : dtvSources, 'sourceNames' : sourceNames}
+templateData = {'oi' : 'wassup', 'numberOfTargets' : int(numberOfTargets), 'numberOfSources' : len(sourceNames), 'dtvSources' : dtvSources, 'sourceNames' : sourceNames}
 
 @app.route('/')
 def main():
@@ -66,8 +66,8 @@ def scene(number):
             miku.musicAllScene()
             templateData['message'] = "Ran the music all scene"
         elif number == '4':
-            miku.singleSourceScene(int(musicSource))
-            templateData['message'] = "Ran the single source scene with music source"
+            miku.singleSourceScene(int(12))
+            templateData['message'] = "Ran the single source scene with MMS2 source"
         elif number == '5':
             miku.standardSceneThrees()
             templateData['message'] = "Ran scene 5, standard scene threes"
@@ -88,28 +88,6 @@ def scene(number):
         else:
             templateData['errorMessage'] = "That's not a valid scene, please try 1-5"
             traceback.print_exc()
-#    
-#    scenes = {'1' : miku.standardScene,
-#               '2' : miku.standardSceneThrees,
-#               '3' : miku.musicAllScene,
-#               '4' : miku.standardSceneThrees,
-#               '5' : miku.standardSceneThrees
-#        }
-#    else:
-#        scenes = {'1' : miku.standardScene,
-#               '2' : miku.standardScene,
-#               '3' : miku.standardScene,
-#               '4' : miku.standardScene,
-#               '5' : miku.standardScene
-#        }
-    
-#    try:
-#        #call our scene from the dict depending on number passed in url
-#        scenes[number]()  
-#    except AttributeError:
-#        templateData['message'] = "That's not a valid scene, please try 1-5"
-#        traceback.print_exc()
-
     return render_template('index.html', **templateData)
 
 @app.route('/matrix/<control>')
@@ -128,6 +106,8 @@ def matrix(control):
 def customScene(source, target):
     print('Source is: ' + str(source))
     print('Target is: ' + str(target))
+    source = int(source) + 1
+    target = int(target) + 1
     miku.customScene(source,target)
     
     templateData['message'] = "Sent source #" + str(int(source) + 1) + " to target #" + str(int(target) + 1)
@@ -137,7 +117,7 @@ def customScene(source, target):
 @app.route('/singleSourceAll/<source>')
 def singleSourceAll(source):
     print('Source is: ' + str(source))
-    miku.singleSourceScene(int(source))
+    miku.singleSourceScene(int(source)+1)
     
     templateData['message'] = "Sent " + sourceNames[int(source)] + " to all targets"
     

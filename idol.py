@@ -16,7 +16,7 @@ import serial
 import configparser
 import logging
 import sys
-import time
+from time import sleep
 import http.client
 import urllib.request, urllib.parse, urllib.error
 import random
@@ -49,18 +49,18 @@ logger.addHandler(ch)
 logger.debug('====ProgramStart====')
 
 # TODO
-# musicToAll
+# musicToAll - this is done now actually
 # projectorsOn
 
 class idol:
     def __init__(self, matrixCom, matrixType, musicSource, dtvSources, numberOfTargets):
-#        self.matrixCom = serial.Serial(
-#                port = 'COM' + str(matrixCom),
-#                baudrate = 9600,
-#                parity = serial.PARITY_NONE,
-#                stopbits = serial.STOPBITS_ONE,
-#                bytesize = serial.EIGHTBITS
-#            )
+        self.matrixCom = serial.Serial(
+                port = '/dev/ttyUSB0',
+                baudrate = 9600,
+                parity = serial.PARITY_NONE,
+                stopbits = serial.STOPBITS_ONE,
+                bytesize = serial.EIGHTBITS
+            )
         self.matrixType = matrixType
         self.musicSource = musicSource
         self.dtvSources = dtvSources
@@ -70,10 +70,9 @@ class idol:
         # Takets a single source (input) and a list of targets (outputs) and generates a list of the command for them for whichever matrix you're using
         commandList = []
         if self.matrixType == "animod":
-            commandBase = str(source) + "B"
             for target in targets:
-                commandBase += str(target) + ", "
-            command = commandBase[:-2] + "."
+                command = str(source) + "B" + str(target) + "."
+                commandList.append(command)
         elif self.matrixType == "wolf":
             commandBase = "x" + str(source) + "X" 
             for target in targets:
@@ -100,9 +99,15 @@ class idol:
     def _sendSerial(self,com,commands):
         for command in commands:
             try:
+                try: 
+                    com.open()
+                except:
+                    logger.debug('Port is already open')
                 com.write(bytes(command, 'UTF-8'))
+                sleep(0.1)
+                com.close()
             except serial.SerialException as ex:
-                logger.error('Port ' + str(comNum-1) + ' is unavailable: ' + ex)
+                logger.error('Port is unavailable: ' + ex)
     
 
     def standardScene(self):
@@ -141,8 +146,8 @@ class idol:
         dtvOutCommands = self._buildMultiSourceCommand(dtvSources, dtvTargets)
         logger.debug("Music commands: " + str(musicOutCommands))
         logger.debug("dtv commands: " + str(dtvOutCommands))
-#        self._sendSerial(self.matrixCom,musicOutCommands)
-#        self._sendSerial(self.matrixCom,dtvOutCommands)
+        self._sendSerial(self.matrixCom,musicOutCommands)
+        self._sendSerial(self.matrixCom,dtvOutCommands)
 
 
         
@@ -179,8 +184,8 @@ class idol:
         dtvOutCommands = self._buildMultiSourceCommand(dtvSources, dtvTargets)
         logger.debug("Music commands: " + str(musicOutCommands))
         logger.debug("dtv commands: " + str(dtvOutCommands))
-#        self._sendSerial(self.matrixCom,musicOutCommands)
-#        self._sendSerial(self.matrixCom,dtvOutCommands)
+        self._sendSerial(self.matrixCom,musicOutCommands)
+        self._sendSerial(self.matrixCom,dtvOutCommands)
         
     def singleSourceScene(self,source):
         targets = []
@@ -191,7 +196,7 @@ class idol:
             targets.append(currentTargetID)
         command = self._buildSingleSourceCommand(source, targets)
         logger.debug(command)
-        #self._sendSerial(self.matrixCom, command)   
+        self._sendSerial(self.matrixCom, command)   
     
     # will replace this with singleSourceScene once i rewrite the dict-based case-switch statement into a n if elseif else statement
     def musicAllScene(self):
@@ -203,12 +208,14 @@ class idol:
             targets.append(currentTargetID)
         command = self._buildSingleSourceCommand(self.musicSource, targets)
         logger.debug(command)
-        #self._sendSerial(self.matrixCom, command)
+        self._sendSerial(self.matrixCom, command)
 
     def customScene(self, source, target):
-        musicOutCommand = self._buildSingleSourceCommand(source, target)
+        targets = []
+        targets.append(target)
+        musicOutCommand = self._buildSingleSourceCommand(source, targets)
         logger.debug("Music command: " + str(musicOutCommand))
-        #self._sendSerial(self.matrixCom, musicOutCommand)
+        self._sendSerial(self.matrixCom, musicOutCommand)
 
     # ########################
     # Projectors On

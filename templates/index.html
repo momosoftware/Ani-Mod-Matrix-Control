@@ -177,7 +177,7 @@
                     <a class="cardanchor" href="/scene/1">
                         <div class="card card-inverse card-primary mb-3 text-center">
                             <div class="card-block">
-                                <h3 class="card-title">Scene 1</h3>
+                                <h3 class="card-title">Scene 1 - Twos</h3>
                                 <p class="card-text">Standard setup for centers with 4 projectors per 8 lanes, every other screen is music or DTV</p>
                             </div>
                         </div>
@@ -185,7 +185,7 @@
                     <a class="cardanchor" href="/scene/2">
                         <div class="card card-inverse card-primary mb-3 text-center">
                             <div class="card-block">
-                                <h3 class="card-title">Scene 2</h3>
+                                <h3 class="card-title">Scene 2 - Threes</h3>
                                 <p class="card-text">Standard setup for locations with 3 projectors per 8 lanes, showing Music:DTV:Music for each group</p>
                             </div>
                         </div>
@@ -193,24 +193,24 @@
                     <a class="cardanchor" href="/scene/3">
                         <div class="card card-inverse card-primary mb-3 text-center">
                             <div class="card-block">
-                                <h3 class="card-title">Scene 3</h3>
-                                <p class="card-text">Set the matrix to scene 3</p>
+                                <h3 class="card-title">Scene 3 - Music</h3>
+                                <p class="card-text">Set music videos to show on every screen</p>
                             </div>
                         </div>
                     </a>
                     <a class="cardanchor" href="/scene/4">
                         <div class="card card-inverse card-primary mb-3 text-center">
                             <div class="card-block">
-                                <h3 class="card-title">Scene 4</h3>
-                                <p class="card-text">Set the matrix to scene 4</p>
+                                <h3 class="card-title">Scene 4 - Logo</h3>
+                                <p class="card-text">Show Headpinz logos on every screen(for league)</p>
                             </div>
                         </div>
                     </a>
                     <a class="cardanchor" href="/scene/5">
                         <div class="card card-inverse card-primary mb-3 text-center">
                             <div class="card-block">
-                                <h3 class="card-title">Scene 5</h3>
-                                <p class="card-text">Set the matrix to scene 5</p>
+                                <h3 class="card-title">Scene 5 - Unused</h3>
+                                <p class="card-text">Placeholder, just runs scene 2 - threes</p>
                             </div>
                         </div>
                     </a>
@@ -240,7 +240,7 @@
             <br />
             <br />
             <br />
-            <h2 class="display-4">Single-Target Scene Selection</h2>
+            <h2 class="display-4">Change Single Screen</h2>
             <br />
             <a class="btn btn-primary collapsed" data-toggle="collapse" href="#singleProjList" role="button" aria-expanded="false" aria-controls="collapseExample">
                 Expand
@@ -266,7 +266,7 @@
             <br />
             <br />
             <br />
-            <h2 class="display-4">All-Target Source Selection</h2>
+            <h2 class="display-4">All-Screens Channel Selection</h2>
             <br />
             <a class="btn btn-primary collapsed" data-toggle="collapse" href="#singleSourceList" role="button" aria-expanded="false" aria-controls="collapseExample">
                 Expand
@@ -290,6 +290,11 @@
             </div>
         </div>
         <script type="text/javascript">
+
+            window.onload = function() {
+                history.pushState(null, null, '/');
+            };
+
             function genCustomSceneModal(target){
                 var sourceOpts = [];
                 {%for source in range(numberOfSources) %}
