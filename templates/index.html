@@ -149,13 +149,18 @@
                 font-weight: 300 !important;
                 font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
             }
+
+            .display-5{
+                font-size: 3rem;
+                font-weight: 300;
+                line-height: 1.1;
+            }
         </style>
     </head>
 
     <body id="body">
         <nav class="navbar sticky-top">
-            <div class="container">
-                <h1 class="navbar-brand mb-0">Idol - Projector Control</h1>
+            <div class="container"> <h1 class="navbar-brand mb-0"> Idol - Projector Control</h1>
             </div>
         </nav>
         <div class="container">
@@ -170,7 +175,7 @@
             </div>
             {% endif %}
             <br />
-            <h1 class="display-4">Scene Slection</h1>
+            <h1 class="display-5">Scene Slection</h1>
             <br />
             <div class="row">
                 <div class="col-md-12 card-deck">
@@ -193,7 +198,7 @@
                     <a class="cardanchor" href="/scene/3">
                         <div class="card card-inverse card-primary mb-3 text-center">
                             <div class="card-block">
-                                <h3 class="card-title">Scene 3 - Music</h3>
+                                <h3 class="card-title">Scene 3 - Music Videos Everywhere</h3>
                                 <p class="card-text">Set music videos to show on every screen</p>
                             </div>
                         </div>
@@ -201,7 +206,7 @@
                     <a class="cardanchor" href="/scene/4">
                         <div class="card card-inverse card-primary mb-3 text-center">
                             <div class="card-block">
-                                <h3 class="card-title">Scene 4 - Logo</h3>
+                                <h3 class="card-title">Scene 4 - Logos Everywhere</h3>
                                 <p class="card-text">Show Headpinz logos on every screen(for league)</p>
                             </div>
                         </div>
@@ -209,8 +214,16 @@
                     <a class="cardanchor" href="/scene/5">
                         <div class="card card-inverse card-primary mb-3 text-center">
                             <div class="card-block">
-                                <h3 class="card-title">Scene 5 - Unused</h3>
-                                <p class="card-text">Placeholder, just runs scene 2 - threes</p>
+                                <h3 class="card-title">Scene 5 - Logos'n'VIP Videos</h3>
+                                <p class="card-text">Main zone shows logos, VIP shows videos</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a class="cardanchor" href="/scene/6">
+                        <div class="card card-inverse card-primary mb-3 text-center">
+                            <div class="card-block">
+                                <h3 class="card-title">Scene 6 - Half'n'Half</h3>
+                                <p class="card-text">FIrst half of the house shows logos, second half shows videos</p>
                             </div>
                         </div>
                     </a>
@@ -240,7 +253,30 @@
             <br />
             <br />
             <br />
-            <h2 class="display-4">Change Single Screen</h2>
+            <h2 class="display-5">Change Zone Screens</h2>
+            <br />
+            <a class="btn btn-primary collapsed" data-toggle="collapse" href="#zoneList" role="button" aria-expanded="false" aria-controls="collapseExample" >
+                Expand
+            </a>
+
+            <div class="row">
+                <div class="collapse" id="zoneList">
+                    <div class="col-md-12 card-deck singles">
+                        {%for zone in range(numberOfZones)%}
+                        <a class="cardanchor" onclick="genCustomZoneModal('{{zone}}');">
+                            <div class="card card-inverse card-primary mb-3 text-center">
+                                <div class="card-block">
+                                    <h3 class="card-title">{{zoneNames[zone]}}</h3>
+                                    <p class="card-text">Change the current output on projector {{zone + 1}}</p>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <br />
+            <h2 class="display-5">Change Single Screen</h2>
             <br />
             <a class="btn btn-primary collapsed" data-toggle="collapse" href="#singleProjList" role="button" aria-expanded="false" aria-controls="collapseExample">
                 Expand
@@ -263,10 +299,7 @@
                 </div>
             </div>
             <br />
-            <br />
-            <br />
-            <br />
-            <h2 class="display-4">All-Screens Channel Selection</h2>
+            <h2 class="display-5">Change All Screens</h2>
             <br />
             <a class="btn btn-primary collapsed" data-toggle="collapse" href="#singleSourceList" role="button" aria-expanded="false" aria-controls="collapseExample">
                 Expand
@@ -306,12 +339,12 @@
                 {% endfor %}
                 var defaults = {
                     placementId:'body',                 // what dom element (by id) do we wanna insert the modal in to
-                    heading:'Modal',                    //what should the heading be for the modal
+                    heading:'Choose what to play on this projector' + target,                    //what should the heading be for the modal
                     mainContent:'content',              //
                     closeBtnText:'Close',               // What should the close button say
                     submitBtnText:'Submit',             // What should the submit button say
                     modaltype:'basic',                  // what type of modal should it be (basic/iframe/login/optionset)
-                    extraContent:'pssst',                 // the ID that we want our auth input to be,
+                    extraContent:'pssst',                 // nada
                     frameSource:'https://google.com'    // the page to show in the iframe
                 };
                  var context = []
@@ -357,6 +390,78 @@
                  console.log('fuck')
                 $("#dynamicModal").modal('show');
             }
+            
+            function genCustomZoneModal(zone){
+                var sourceOpts = [];
+                {%for source in range(numberOfSources) %}
+                var sourceOpt{{source}} = ['{{source}}', '{{sourceNames[source]}}', '/singleSourceZone/{{source}}/'];
+                {% endfor %}
+                sourceOpts = [];
+                {%for source in range(numberOfSources) %}
+                sourceOpts.push(sourceOpt{{source}}) 
+                {% endfor %}
+                var defaults = {
+                    placementId:'body',                 // what dom element (by id) do we wanna insert the modal in to
+                    heading:'Choose what to play in this zone',                    //what should the heading be for the modal
+                    mainContent:'content',              //
+                    closeBtnText:'Close',               // What should the close button say
+                    submitBtnText:'Submit',             // What should the submit button say
+                    modaltype:'basic',                  // what type of modal should it be (basic/iframe/login/optionset)
+                    extraContent:'pssst',                 // nada
+                    frameSource:'https://google.com'    // the page to show in the iframe
+                };
+                 var context = []
+                context = $.extend(defaults, context);
+
+                optionSetArray = sourceOpts;
+
+                context.mainContent = '<div class="card-deck singles">'
+                 
+                optionSetArray.forEach(function(curOpt, index, initial_array) {
+                    context.mainContent += '<a class="cardanchor"href="' + curOpt[2] + zone +'"> <div class="card"  style="cursor:pointer;">'
+                    context.mainContent += '<div class="card-block">'
+                    context.mainContent += '<h4 class="card-title">' + curOpt[1] + '</h4>'
+                    context.mainContent += '<p class="card-text">' + curOpt[1] + '</p>'
+                    context.mainContent += '</div>' //card-block
+                    context.mainContent += '</div></a>' //card
+                    console.log('ID: ' + curOpt[0]);
+                    console.log('Title: ' + curOpt[1]);
+                    console.log('Link: ' + curOpt[2]);
+                    console.log('')
+                });
+
+                context.mainContent += '</div>' // card-group
+                var html =  '<div id="dynamicModalZone" class="modal fade">';
+                html += '<div class="modal-dialog modal-lg" role="document">';
+                html += '<div class="modal-content">';
+                html += '<div class="modal-header">';
+                html += '<button type="button" class="close" data-dismiss="modal" aria-label="Close">';
+                html += '<span aria-hidden="true">&times;</span>';
+                html += '</button>';
+                html += '<h4>'+context.heading+'</h4>';
+                html += '</div>'; //modalHeader
+                html += '<div class="modal-body">';
+                html += '<p>' + context.mainContent + '</p>';
+                html += '<div class="modal-footer">';
+                html += '<button type="button" class="btn btn-secondary" data-dismiss="modal">' + context.closeBtnText + '</button>'; // close button
+                html += '</div>';  // footer
+                html += '</div>';  // modal-body
+                html += '</div>';  // modalWindow
+                html += '</div>';  // modal-content
+                html += '</div>';  // modal-dialog
+                $("#"+context.placementId).append(html);
+                 console.log('fuck')
+                $("#dynamicModalZone").modal('show');
+            }
+            $('#zoneList').on('shown.bs.collapse', function(){
+                document.querySelector('#zoneList').scrollIntoView({behavior: 'smooth'});
+            })
+            $('#singleProjList').on('shown.bs.collapse', function(){
+                document.querySelector('#singleProjList').scrollIntoView({behavior: 'smooth'});
+            })
+            $('#singleSourceList').on('shown.bs.collapse', function(){
+                document.querySelector('#singleSourceList').scrollIntoView({behavior: 'smooth'});
+            })
         </script>
     </body>
 </html>

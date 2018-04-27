@@ -53,7 +53,7 @@ logger.debug('====ProgramStart====')
 # projectorsOn
 
 class idol:
-    def __init__(self, matrixCom, matrixType, musicSource, dtvSources, numberOfTargets):
+    def __init__(self, matrixCom, matrixType, musicSource, dtvSources, numberOfTargets, zones):
         self.matrixCom = serial.Serial(
                 port = '/dev/ttyUSB0',
                 baudrate = 9600,
@@ -65,6 +65,11 @@ class idol:
         self.musicSource = musicSource
         self.dtvSources = dtvSources
         self.numberOfTargets = numberOfTargets
+        self.zoneLanes = []
+        for zone in zones.split(','):
+            lanes = list(map(int, zone.split('-')))
+            self.zoneLanes.append(list(range(lanes[0],lanes[1]+1)))
+
     
     def _buildSingleSourceCommand(self,source,targets):
         # Takets a single source (input) and a list of targets (outputs) and generates a list of the command for them for whichever matrix you're using
@@ -79,7 +84,7 @@ class idol:
                 commandBase += "x" + str(target) + "&"
             command = commandBase[:-1] + "."
         
-        commandList.append(command)
+        #commandList.append(command)
         return commandList
     
     def _buildMultiSourceCommand(self,sources,targets):
@@ -150,8 +155,6 @@ class idol:
         self._sendSerial(self.matrixCom,dtvOutCommands)
 
 
-        
-        
     def standardSceneThrees(self):
         dtvSources = self.dtvSources
         dtvSourcesStatic = self.dtvSources
@@ -198,15 +201,24 @@ class idol:
         logger.debug(command)
         self._sendSerial(self.matrixCom, command)   
     
-    # will replace this with singleSourceScene once i rewrite the dict-based case-switch statement into a n if elseif else statement
-    def musicAllScene(self):
-        targets = []
-        numberOfTargets = int(self.numberOfTargets)
-        for target in range(numberOfTargets):
-            # our current target ID is the number of the actual button that would be pressed on the matrix, which will be one more than our target value, as the range counts from zero and the physical matrix counts from 1
-            currentTargetID = target + 1
-            targets.append(currentTargetID)
-        command = self._buildSingleSourceCommand(self.musicSource, targets)
+    # # TODO will replace this with singleSourceScene once i rewrite the dict-based case-switch statement into a n if elseif else statement
+    # def musicAllScene(self):
+    #     targets = []
+    #     numberOfTargets = int(self.numberOfTargets)
+    #     for target in range(numberOfTargets):
+    #         # our current target ID is the number of the actual button that would be pressed on the matrix, which will be one more than our target value, as the range counts from zero and the physical matrix counts from 1
+    #         currentTargetID = target + 1
+    #         targets.append(currentTargetID)
+    #     command = self._buildSingleSourceCommand(self.musicSource, targets)
+    #     logger.debug(command)
+    #     self._sendSerial(self.matrixCom, command)
+
+    def singleSourceZone(self,source,zone):
+        logger.debug('singlesourcezone')
+        targets = self.zoneLanes[int(zone)]
+        logger.debug(targets)
+        command = self._buildSingleSourceCommand(source, targets)
+        logger.debug('command')
         logger.debug(command)
         self._sendSerial(self.matrixCom, command)
 
