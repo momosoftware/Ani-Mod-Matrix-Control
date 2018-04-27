@@ -50,10 +50,52 @@ logger.debug('====ProgramStart====')
 
 # TODO
 # musicToAll - this is done now actually
-# projectorsOn
+# projectorsOn https://puu.sh/AbAPH/76fb9cd73f.png 
 
 class idol:
     def __init__(self, matrixCom, matrixType, musicSource, dtvSources, numberOfTargets, zones):
+        """ 
+        Initialize the idol class 
+
+        Initializes the idol class and does some prep work for the class functions, such as defining
+        the matrix com port options, defining our zones from the config string, and defining other
+        oprions passed from the config file
+
+        Parameters
+        ----------
+        matrixCom : string
+            Contains the COM port that the matrix is on. 
+            In the format of the device path on linux (/dev/ttyUSB0) or the com device name in windows (COM1) 
+            (Currently unused)
+        matrixType : string
+            String  containing the type of matrix we're targetting. This informs how commands are built before
+            sending them to the com port. 
+        musicSource : int
+            Int containing the source that our music videos are attached to, used for some scene functions.
+        dtvSources : list
+            List of ints containing all sources with directTV boxes on them. Used to inform some scene functions
+            that need to loop through all DTV sources multiple times without including other sources
+        numberOfTargets : int
+            Total number of targets we can point sources to, used in a variety of places including scene functions,
+            web page generation functions, and to limit what targets we can point sources to (to avoid pissing off
+            the video matrix)
+        zones : string
+            String in the format of `start1-end1,start2-end2,...` where start and end are ints representing target
+            ranges to be defined as zones. Used to send out sources to a range of user-defined zones without having 
+            to send to all define these zones during each use or to send out sources to targets one by one. Is split
+            into a list of lists containing ints of all numbers in each range during the initialization of the class
+
+        Returns
+        -------
+        commandList : list
+            Returns a list of strings, commands built by the function to tell the matrix which source to 
+            put to which targets. Expect one list value for each target passed to the function
+
+        Todo
+        ----
+        Allow usage of com set in config
+            Need to use the matrixCom value in the general section of the config for the com port definition
+        """
         self.matrixCom = serial.Serial(
                 port = '/dev/ttyUSB0',
                 baudrate = 9600,
@@ -72,7 +114,25 @@ class idol:
 
     
     def _buildSingleSourceCommand(self,source,targets):
-        # Takets a single source (input) and a list of targets (outputs) and generates a list of the command for them for whichever matrix you're using
+        """ 
+        Single source to multiple targets helper class
+
+        Build a command using a single source and one or more targets for the matrix defined in the config file
+
+        Parameters
+        ----------
+        source : int
+            The source that we wish to direct each of the targets to display
+        targets : list
+            A list of targets we wish to have directed to the source
+
+        Returns
+        -------
+        commandList : list
+            Returns a list of strings, commands built by the function to tell the matrix which source to 
+            put to which targets. Expect one list value for each target passed to the function
+
+        """
         commandList = []
         if self.matrixType == "animod":
             for target in targets:
@@ -84,10 +144,30 @@ class idol:
                 commandBase += "x" + str(target) + "&"
             command = commandBase[:-1] + "."
         
-        #commandList.append(command)
         return commandList
     
     def _buildMultiSourceCommand(self,sources,targets):
+        """ 
+        Multiple sources to multiple targets helper class
+
+        Build a command using multiple sources and multiple targets for the matrix defined in the config file.
+        Just kinda zippers them together, first source to first target, second source to second target, etc. If
+        it runs out of sources, it loops back around to the first until all targets have a source
+
+        Parameters
+        ----------
+        source : list
+            A list of the sources that we wish to direct the targets to display
+        targets : list
+            A list of targets we wish to have directed to the sources
+
+        Returns
+        -------
+        commandList : list
+            Returns a list of strings, commands built by the function to tell the matrix which source to 
+            put to which target. Expect one list value for each target list item passed to the function
+
+        """
         commandList = []
         for target in targets:
             index = targets.index(target)
@@ -102,17 +182,39 @@ class idol:
 
     
     def _sendSerial(self,com,commands):
+        """ 
+        Serial command sender helper class
+
+        Takes a list of commands and a pyserial object, iterates through the list of commands,
+        opens the serial deivce, writes the command, waits approx 1/3rd of a second, closes the device,
+        then continues with the next command.
+
+        Parameters
+        ----------
+        com : pyserial object
+            The pyserial object we'll be using to send commands to the matrix
+        targets : list
+            A list of commands we wish to send to the matrix
+
+        """
+        logger.debug('Sending commands')
         for command in commands:
+            logger.debug('Sending command: ' + command)
             try:
                 try: 
                     com.open()
                 except:
                     logger.debug('Port is already open')
                 com.write(bytes(command, 'UTF-8'))
-                sleep(0.1)
+                sleep(0.3)
                 com.close()
             except serial.SerialException as ex:
                 logger.error('Port is unavailable: ' + ex)
+            # for some reason it wont always send the last command unless you open and close the port again????
+            sleep(0.2)
+            com.open()
+            sleep(0.2)
+            com.close()
     
 
     def standardScene(self):
@@ -200,18 +302,6 @@ class idol:
         command = self._buildSingleSourceCommand(source, targets)
         logger.debug(command)
         self._sendSerial(self.matrixCom, command)   
-    
-    # # TODO will replace this with singleSourceScene once i rewrite the dict-based case-switch statement into a n if elseif else statement
-    # def musicAllScene(self):
-    #     targets = []
-    #     numberOfTargets = int(self.numberOfTargets)
-    #     for target in range(numberOfTargets):
-    #         # our current target ID is the number of the actual button that would be pressed on the matrix, which will be one more than our target value, as the range counts from zero and the physical matrix counts from 1
-    #         currentTargetID = target + 1
-    #         targets.append(currentTargetID)
-    #     command = self._buildSingleSourceCommand(self.musicSource, targets)
-    #     logger.debug(command)
-    #     self._sendSerial(self.matrixCom, command)
 
     def singleSourceZone(self,source,zone):
         logger.debug('singlesourcezone')
@@ -229,24 +319,8 @@ class idol:
         logger.debug("Music command: " + str(musicOutCommand))
         self._sendSerial(self.matrixCom, musicOutCommand)
 
-    # ########################
-    # Projectors On
-    # ########################
-    # Turns all projectors n the house on. Does so
-    # through use of HTTP POST, lifted straight from the
-    # projector's web portal. Doesn't require any sort
-    # of authentication to hit the POST taget, despite needing
-    # auth to access the page which send the POST if accessing
-    # via web browser.
-    #
-    # TODO:
-    # - starting with a projStartingIP, take numOfProj variable amount
-    #   iterate through a for loop and turn all projectors on.
-    # - Do something similar to turn them off.
-    # - Another function for turning on/off a single projector
-    # - one for status
-    # - oh and properly comment the function
-    # ########################
+
+# replacing the old projector on/off code, needs a better name
     def allTargetsCommand(self,command):
         logger.debug("Turning on projectors")
         targetSubnet = configparser.get('general', 'targetSubnet')
