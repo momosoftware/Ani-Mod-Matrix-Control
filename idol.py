@@ -12,6 +12,7 @@
 
 # Idol projection software
 
+import socket
 import serial
 import configparser
 import logging
@@ -53,7 +54,7 @@ logger.debug('====ProgramStart====')
 # projectorsOn https://puu.sh/AbAPH/76fb9cd73f.png 
 
 class idol:
-    def __init__(self, matrixCom, matrixType, musicSource, dtvSources, numberOfTargets, zones):
+    def __init__(self, matrixCom, matrixType, musicSource, dtvSources, numberOfTargets, zones, targetIPs):
         """ 
         Initialize the idol class 
 
@@ -84,6 +85,8 @@ class idol:
             ranges to be defined as zones. Used to send out sources to a range of user-defined zones without having 
             to send to all define these zones during each use or to send out sources to targets one by one. Is split
             into a list of lists containing ints of all numbers in each range during the initialization of the class
+        targetIPs : list
+            list of strings containing IP addresses of all target projectors to be turned on/off
 
         Returns
         -------
@@ -108,9 +111,11 @@ class idol:
         self.dtvSources = dtvSources
         self.numberOfTargets = numberOfTargets
         self.zoneLanes = []
+        self.targetIPs = targetIPs
         for zone in zones.split(','):
             lanes = list(map(int, zone.split('-')))
             self.zoneLanes.append(list(range(lanes[0],lanes[1]+1)))
+        socket.setdefaulttimeout(3)
 
     
     def _buildSingleSourceCommand(self,source,targets):
@@ -321,34 +326,29 @@ class idol:
 
 
 # replacing the old projector on/off code, needs a better name
-    def allTargetsCommand(self,command):
-        logger.debug("Turning on projectors")
-        targetSubnet = configparser.get('general', 'targetSubnet')
-        targetHost = configparser.get('general', 'targetStartingHost')
-        currentHost = int(targetHost)
+    def targetCommand(self, command, ip):
+        logger.debug("Turning on/off projectors")
+        logger.debug('command: ' + command)
         if command == "on":
             targetCommand = "command=24003100    0f0001010003010001"
-        elif comand == "off":
+        elif command == "off":
             targetCommand = "command=24003100    0f0001010003010002"
         else:
             targetCommand = "command=24003100    0e00023100000000"
-        
-        for i in range(int(self.numberOfTargets)):
-            currentIP = "192.168." + str(targetSubnet) + "." + str(currentHost)
-            logger.debug("URL: " + currentP)
+        try:
             params = urllib.parse.urlencode({'@number': 12524, '@type': 'issue', '@action': 'show'})
             headers = {"Content-Type": "application/x-www-form-urlencoded", "Cache-Control": "no-cache"}
-            logger.debug(headers)
-            currentCON = http.client.HTTPConnection(currentIP)
+            currentCON = http.client.HTTPConnection(ip)
             currentCON.request("POST", "/tgi/return.tgi?sid=" + str(random.random()), targetCommand, headers)
             currentRESP = currentCON.getresponse()
-            logger.debug("Status:")
-            logger.debug(currentRESP.status)
-            logger.debug("Reason:")
-            logger.debug(currentRESP.reason)
+            logger.debug(ip + " - Status:")
+            logger.debug(ip + ' - ' + str(currentRESP.status))
+            logger.debug(ip + " - Reason:")
+            logger.debug(ip + ' - ' + currentRESP.reason)
             data = currentRESP.read()
-            logger.debug("Data:")
-            logger.debug(data)
+            logger.debug(ip + " - Data:")
+            logger.debug(ip + ' - ' + data.decode("utf-8"))
             currentCON.close()
-            
-            currentHost = currentHost + 1
+        except:
+            logger.debug(ip + ' - Couldn\'t send command')  
+            #raise      

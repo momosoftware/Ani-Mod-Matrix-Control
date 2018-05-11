@@ -1,10 +1,10 @@
-# 杯ども、それはかすかな目です！！！
-# or i guess miku is a better projected idol than kizuna ai huh
-
-
-
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
+# 杯ども、それはかすかな目です！！！
+# or i guess miku is a better projected idol than kizuna ai huh
+# new rule: v-tubers aren't idols
+# plus there's too many of them
 
 import time
 from flask import Flask, render_template, request, Response, Markup
@@ -12,6 +12,7 @@ import idol
 import traceback
 import configparser
 import logging
+from threading import Thread
 
 configparser = configparser.RawConfigParser()
 configFilePath = r'config.conf'
@@ -20,15 +21,14 @@ configparser.read(configFilePath)
 matrixCom = configparser.get('general', 'matrixCom')
 matrixType = configparser.get('general', 'matrixType')
 musicSource = configparser.get('general', 'musicSource')
-dtvSources = configparser.get('general', 'dtvSources').split(",")
-sourceNames = configparser.get('general', 'sourceNames').split(",")
+dtvSources = configparser.get('general', 'dtvSources').split(',')
+sourceNames = configparser.get('general', 'sourceNames').split(',')
 numberOfTargets = configparser.get('general', 'numberOfTargets')
 projectorLayout = configparser.get('general', 'projectorLayout') # "twos" or "threes"
 zones = configparser.get('general', 'zones')
 numberOfZones = len(zones.split(','))
-zoneNames = configparser.get('general', 'zoneNames').split(",")
-
-
+zoneNames = configparser.get('general', 'zoneNames').split(',')
+targetIPs = configparser.get('general','targetIPs').split(',')
 
 # hook into the logger
 logger = idol.logger
@@ -37,7 +37,7 @@ logger = idol.logger
 app = Flask(__name__)
 
 # initialize an idol instance with our config info
-miku = idol.idol(matrixCom,matrixType,musicSource,dtvSources,numberOfTargets,zones)
+miku = idol.idol(matrixCom,matrixType,musicSource,dtvSources,numberOfTargets,zones,targetIPs)
 
 # set our base template data w/ config info
 templateData = {'oi' : 'wassup', 'numberOfTargets' : int(numberOfTargets), 'numberOfSources' : len(sourceNames), 'dtvSources' : dtvSources, 'sourceNames' : sourceNames, 'numberOfZones': numberOfZones, 'zoneNames': zoneNames}
@@ -77,15 +77,15 @@ def scene(number):
             templateData['message'] = "Ran scene 4, logos across the house"
         elif number == '5':
             # in scene 5, we have our first multi-command scene. This sets our first 3 zones (main lanes) to logos and our 4th zone (VIP) to music videos
-            miku.singleSourceZone(11,0) # MMS2 (logos) to zone 1
-            miku.singleSourceZone(11,1) # MMS2 (logos) to zone 2
-            miku.singleSourceZone(11,2) # MMS2 (logos) to zone 3
+            miku.singleSourceZone(12,0) # MMS2 (logos) to zone 1
+            miku.singleSourceZone(12,1) # MMS2 (logos) to zone 2
+            miku.singleSourceZone(12,2) # MMS2 (logos) to zone 3
             miku.singleSourceZone(0,3) # music to zone 4 (vip)
             templateData['message'] = "Ran scene 5, logos in main and videos in vip"
         elif number == '6':
             # in scene 6, our first two zones show logos and our second two zones show videos
-            miku.singleSourceZone(11,0) # MMS2 (logos) to zone 1
-            miku.singleSourceZone(11,1) # MMS2 (logos) to zone 2
+            miku.singleSourceZone(12,0) # MMS2 (logos) to zone 1
+            miku.singleSourceZone(12,1) # MMS2 (logos) to zone 2
             miku.singleSourceZone(0,2) # music to zone 3
             miku.singleSourceZone(0,3) # music to zone 4 (vip)
             templateData['message'] = "Ran scene 6, logos in first half and videos in second"
@@ -118,6 +118,28 @@ def matrix(control):
         miku.poweroff()
     else:
         templateData['errorMessage'] = "That's not a valid control, please try on or off"
+    
+    return render_template('index.html', **templateData)
+
+# turn on/off casio projector targets
+@app.route('/projector/<command>')
+def targetCommand(command):
+    # threading didn't work, need to thread each  on/off?
+    logger.debug("Turning projectors " + command)
+    if command == "on" or command == "off":
+        for currentIP in targetIPs:
+            time.sleep(0.1)
+            logger.debug("Opening thread for " + currentIP)
+            process = Thread(target=miku.targetCommand, args=(command,currentIP), daemon=True)
+            
+            logger.debug("Starting thread for " + currentIP)
+            process.start()
+        
+        logger.debug("Threads running")
+        # miku.allTargetsCommand(command)
+        templateData['message'] = "Turning projectors " + command
+    else:
+        templateData['message'] = "No command sent to projectors, \"" + command + "\" is not a valid command"
     
     return render_template('index.html', **templateData)
 

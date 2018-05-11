@@ -125,7 +125,7 @@
                 margin-top: 4%;
             }
             
-            .power a {
+            .power a, .power a:focus {
                 background:#20977d;
                 box-shadow: 0px 8px #227c68;
                 width:100%;
@@ -157,7 +157,6 @@
             }
         </style>
     </head>
-
     <body id="body">
         <nav class="navbar sticky-top">
             <div class="container"> <h1 class="navbar-brand mb-0"> Idol - Projector Control</h1>
@@ -178,77 +177,100 @@
             <h1 class="display-5">Scene Slection</h1>
             <br />
             <div class="row">
-                <div class="col-md-12 card-deck">
-                    <a class="cardanchor" href="/scene/1">
-                        <div class="card card-inverse card-primary mb-3 text-center">
+                <div class="col-md-8">
+                    <div class="row">
+                        <div class="col-md-12 card-deck">
+                            <a class="cardanchor" href="/scene/1">
+                                <div class="card card-inverse card-primary mb-3 text-center">
+                                    <div class="card-block">
+                                        <h3 class="card-title">Scene 1 - Twos</h3>
+                                        <p class="card-text">Standard setup for centers with 4 projectors per 8 lanes, every other screen is music or DTV</p>
+                                    </div>
+                                </div>
+                            </a>
+                            <a class="cardanchor" href="/scene/2">
+                                <div class="card card-inverse card-primary mb-3 text-center">
+                                    <div class="card-block">
+                                        <h3 class="card-title">Scene 2 - Threes</h3>
+                                        <p class="card-text">Standard setup for locations with 3 projectors per 8 lanes, showing Music:DTV:Music for each group</p>
+                                    </div>
+                                </div>
+                            </a>
+                            <a class="cardanchor" href="/scene/3">
+                                <div class="card card-inverse card-primary mb-3 text-center">
+                                    <div class="card-block">
+                                        <h3 class="card-title">Scene 3 - Music Videos Everywhere</h3>
+                                        <p class="card-text">Set music videos to show on every screen</p>
+                                    </div>
+                                </div>
+                            </a>
+                            <a class="cardanchor" href="/scene/4">
+                                <div class="card card-inverse card-primary mb-3 text-center">
+                                    <div class="card-block">
+                                        <h3 class="card-title">Scene 4 - Logos Everywhere</h3>
+                                        <p class="card-text">Show Headpinz logos on every screen(for league)</p>
+                                    </div>
+                                </div>
+                            </a>
+                            <a class="cardanchor" href="/scene/5">
+                                <div class="card card-inverse card-primary mb-3 text-center">
+                                    <div class="card-block">
+                                        <h3 class="card-title">Scene 5 - Logos'n'VIP Videos</h3>
+                                        <p class="card-text">Main zone shows logos, VIP shows videos</p>
+                                    </div>
+                                </div>
+                            </a>
+                            <a class="cardanchor" href="/scene/6">
+                                <div class="card card-inverse card-primary mb-3 text-center">
+                                    <div class="card-block">
+                                        <h3 class="card-title">Scene 6 - Half'n'Half</h3>
+                                        <p class="card-text">FIrst half of the house shows logos, second half shows videos</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+        <!--
+                        <div class="col-md-3 power">
+                            <a href="/matrix/on">
+                                <div class="card card-inverse card-primary mb-3 text-center">
+                                    <div class="card-block ">
+                                        <h3 class="card-title">Power On</h3>
+                                        <p class="card-text">Turn the matrix and projectors on.</p>
+                                    </div>
+                                </div>
+                            </a>
+                            <a href="/matrix/off">
+                                <div class="card card-inverse card-primary mb-3 text-center">
+                                    <div class="card-block">
+                                        <h3 class="card-title">Power Off</h3>
+                                        <p class="card-text">Turn the matrix and projectors off.</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+        -->
+                    </div>
+                </div>
+                <div class="col-md-4 power">
+                    <a class="cardanchor" href="/projector/on">
+                        <div class="card card-inverse card-primary card-dark text-center">
                             <div class="card-block">
-                                <h3 class="card-title">Scene 1 - Twos</h3>
-                                <p class="card-text">Standard setup for centers with 4 projectors per 8 lanes, every other screen is music or DTV</p>
+                                <h3 class="card-title">Projectors On</h3>
+                                <p class="card-text">Turn on projectors across the house</p>
                             </div>
                         </div>
                     </a>
-                    <a class="cardanchor" href="/scene/2">
-                        <div class="card card-inverse card-primary mb-3 text-center">
+                    <a class="cardanchor" href="/projector/off">
+                        <div class="card card-inverse card-primary card-dark text-center">
                             <div class="card-block">
-                                <h3 class="card-title">Scene 2 - Threes</h3>
-                                <p class="card-text">Standard setup for locations with 3 projectors per 8 lanes, showing Music:DTV:Music for each group</p>
-                            </div>
-                        </div>
-                    </a>
-                    <a class="cardanchor" href="/scene/3">
-                        <div class="card card-inverse card-primary mb-3 text-center">
-                            <div class="card-block">
-                                <h3 class="card-title">Scene 3 - Music Videos Everywhere</h3>
-                                <p class="card-text">Set music videos to show on every screen</p>
-                            </div>
-                        </div>
-                    </a>
-                    <a class="cardanchor" href="/scene/4">
-                        <div class="card card-inverse card-primary mb-3 text-center">
-                            <div class="card-block">
-                                <h3 class="card-title">Scene 4 - Logos Everywhere</h3>
-                                <p class="card-text">Show Headpinz logos on every screen(for league)</p>
-                            </div>
-                        </div>
-                    </a>
-                    <a class="cardanchor" href="/scene/5">
-                        <div class="card card-inverse card-primary mb-3 text-center">
-                            <div class="card-block">
-                                <h3 class="card-title">Scene 5 - Logos'n'VIP Videos</h3>
-                                <p class="card-text">Main zone shows logos, VIP shows videos</p>
-                            </div>
-                        </div>
-                    </a>
-                    <a class="cardanchor" href="/scene/6">
-                        <div class="card card-inverse card-primary mb-3 text-center">
-                            <div class="card-block">
-                                <h3 class="card-title">Scene 6 - Half'n'Half</h3>
-                                <p class="card-text">FIrst half of the house shows logos, second half shows videos</p>
+                                <h3 class="card-title">Projectors Off</h3>
+                                <p class="card-text">Turn off projectors across the house</p>
                             </div>
                         </div>
                     </a>
                 </div>
-<!--
-                <div class="col-md-3 power">
-                    <a href="/matrix/on">
-                        <div class="card card-inverse card-primary mb-3 text-center">
-                            <div class="card-block ">
-                                <h3 class="card-title">Power On</h3>
-                                <p class="card-text">Turn the matrix and projectors on.</p>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="/matrix/off">
-                        <div class="card card-inverse card-primary mb-3 text-center">
-                            <div class="card-block">
-                                <h3 class="card-title">Power Off</h3>
-                                <p class="card-text">Turn the matrix and projectors off.</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
--->
             </div>
+            
             <br />
             <br />
             <br />
