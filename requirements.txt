@@ -10,6 +10,6 @@ MarkupSafe==1.0
 pyodbc==4.0.17
 pyserial==3.4
 requests==2.18.1
-urllib3==1.21.1
+urllib3==1.26.5
 Werkzeug==0.12.2
 WTForms==2.1
